@@ -3,19 +3,19 @@ export interface Scene {
 }
 
 export class SceneManager {
-  private _sceneStack: Scene[] = [];
+  private sceneStack: Scene[] = [];
 
   public get currentScene(): Scene | undefined {
-    if (this._sceneStack.length == 0) return;
-    const scene = this._sceneStack[this._sceneStack.length - 1];
+    if (this.sceneStack.length == 0) return;
+    const scene = this.sceneStack[this.sceneStack.length - 1];
     return scene;
   }
 
-  public pushScene(scene: Scene) {
-    this._sceneStack.push(scene);
+  public pushScene(scene: Scene): void {
+    this.sceneStack.push(scene);
   }
 
   public popScene(): Scene | undefined {
-    return this._sceneStack.pop();
+    return this.sceneStack.pop();
   }
 }

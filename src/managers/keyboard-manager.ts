@@ -1,37 +1,37 @@
 export class KeyboardManager {
-  private _previousKeyState: Set<string> = new Set<string>();
-  private _currentKeyState: Set<string> = new Set<string>();
+  private previousKeyState: Set<string> = new Set<string>();
+  private currentKeyState: Set<string> = new Set<string>();
 
   public constructor() {
-    document.addEventListener("keydown", this._onKeyDown.bind(this));
-    document.addEventListener("keyup", this._onKeyUp.bind(this));
+    document.addEventListener('keydown', this.onKeyDown.bind(this));
+    document.addEventListener('keyup', this.onKeyUp.bind(this));
   }
 
-  private _onKeyDown(ev: KeyboardEvent) {
-    if (this._currentKeyState.has(ev.key)) {
+  private onKeyDown(ev: KeyboardEvent): void {
+    if (this.currentKeyState.has(ev.key)) {
       return;
     }
-    this._currentKeyState.add(ev.key);
-    this._previousKeyState.delete(ev.key);
+    this.previousKeyState.delete(ev.key);
+    this.currentKeyState.add(ev.key);
   }
 
-  private _onKeyUp(ev: KeyboardEvent) {
-    if (!this._currentKeyState.has(ev.key)) {
+  private onKeyUp(ev: KeyboardEvent): void {
+    if (!this.currentKeyState.has(ev.key)) {
       return;
     }
-    this._previousKeyState.add(ev.key);
-    this._currentKeyState.delete(ev.key);
+    this.previousKeyState.add(ev.key);
+    this.currentKeyState.delete(ev.key);
   }
 
   public hasKeyDown(key: string): boolean {
-    return this._currentKeyState.has(key);
+    return this.currentKeyState.has(key);
   }
 
   public hasKeyUp(key: string): boolean {
-    return this._previousKeyState.has(key) && !this._currentKeyState.has(key);
+    return this.previousKeyState.has(key) && !this.currentKeyState.has(key);
   }
 
-  public tick() {
-    this._previousKeyState.clear();
+  public tick(): void {
+    this.previousKeyState.clear();
   }
 }

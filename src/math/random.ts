@@ -33,11 +33,7 @@ export function getBoundRandom(rand: Random, min: number, max: number): Random {
   };
 }
 
-export function getBoundRandomInt(
-  rand: Random,
-  min: number,
-  max: number
-): Random {
+export function getBoundRandomInt(rand: Random, min: number, max: number): Random {
   min = Math.ceil(min);
   max = Math.floor(max);
   return function () {
@@ -45,10 +41,6 @@ export function getBoundRandomInt(
   };
 }
 
-export function getBoundRandomIntInclusive(
-  rand: Random,
-  min: number,
-  max: number
-) {
+export function getBoundRandomIntInclusive(rand: Random, min: number, max: number): Random {
   return getBoundRandomInt(rand, min, max + 1);
 }
