@@ -1,13 +1,20 @@
 import './style.css';
 import { SceneManager } from './managers/scene-manager';
-//import { getRandom } from "./math/random";
+import { getRandom } from './math/random';
 import { Renderer } from './renderer';
 import { Settings } from './settings';
 import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
-import { TAU } from './math/const';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
+import { BaseScene } from './scene';
+import { State } from './state';
+
+if (import.meta.env.DEV) {
+  const lil = await import('lil-gui');
+  const gui = new lil.GUI();
+  gui.add(Settings, 'fixedDeltaTime');
+}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const app = document.getElementById('app')!;
@@ -23,7 +30,7 @@ const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
 
 const sceneManager = new SceneManager();
-sceneManager.pushScene({ clearColor: 'black' });
+sceneManager.pushScene(new BaseScene('black'));
 
 let audioSystem: AudioSystem | undefined = undefined;
 document.addEventListener(
@@ -35,11 +42,13 @@ document.addEventListener(
   { once: true }
 );
 const renderer = new Renderer();
-//const rng = getRandom("I LOVE TINY GAMES");
-
+const rng = getRandom('I LOVE TINY GAMES');
+const luckyNumber = rng();
+console.debug('Your lucky number is: ', luckyNumber);
 let _raf = 0;
 let _then = 0;
 let _accumulator = 0;
+let _previousState: State | undefined = undefined;
 //let _t = 0;
 
 function gameloop(now: number): void {
@@ -57,24 +66,22 @@ function gameloop(now: number): void {
   }
 
   //VARIABLE STEP
-  const alpha = _accumulator / Settings.fixedDeltaTime;
   if (sceneManager.currentScene) {
-    renderer.render(ctx, sceneManager.currentScene, alpha);
+    sceneManager.currentScene.pointer = pointerManager.getPointerLocation();
+  }
+  const alpha = _accumulator / Settings.fixedDeltaTime;
+  const currentState = sceneManager.currentScene?.getState();
+  if (currentState) {
+    const renderState = _previousState ? currentState.blend(_previousState, alpha) : currentState;
+    renderer.render(ctx, renderState, alpha);
   }
 
-  //if (pointerManager.hasPointerDown()) {
-  const [mx, my] = pointerManager.getPointerLocation();
-  ctx.strokeStyle = 'hotpink';
-  ctx.beginPath();
-  ctx.arc(mx, my, 10, 0, TAU);
-  ctx.stroke();
-  //}
-
-  _raf = requestAnimationFrame(gameloop);
   keyboardManager.tick();
   gamepadManager.tick();
   pointerManager.tick();
   _then = now;
+  _previousState = currentState;
+  _raf = requestAnimationFrame(gameloop);
 }
 
 async function pause(): Promise<void> {

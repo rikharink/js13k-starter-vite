@@ -1,9 +1,7 @@
 export class GamepadManager {
   public constructor() {
     window.addEventListener('gamepadconnected', this._onGamepadConnected.bind(this));
-
     window.addEventListener('gamepaddisconnected', this._onGamepadDisconnected.bind(this));
-
     for (const gp of navigator.getGamepads()) {
       if (gp == null) continue;
       this._connectGamepad(gp);

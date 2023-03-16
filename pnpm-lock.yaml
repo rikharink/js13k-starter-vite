@@ -16,6 +16,7 @@ specifiers:
   eslint-plugin-prettier: ^4.2.1
   google-closure-compiler: ^20230206.0.0
   html-minifier-terser: ^7.1.0
+  lil-gui: ^0.18.1
   prettier: ^2.8.4
   roadroller: ^2.1.0
   rollup: ^3.19.1
@@ -41,6 +42,7 @@ devDependencies:
   eslint-plugin-prettier: 4.2.1_eqzx3hpkgx5nnvxls3azrcc7dm
   google-closure-compiler: 20230206.0.0
   html-minifier-terser: 7.1.0
+  lil-gui: 0.18.1
   prettier: 2.8.4
   roadroller: 2.1.0
   rollup: 3.19.1
@@ -2084,6 +2086,10 @@ packages:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+    dev: true
+
+  /lil-gui/0.18.1:
+    resolution: {integrity: sha512-nsDJLflFGro81hcGqaiDNBEKgkMKNF9okmMmW3Xc6sPXP1zyfD3oIftyctvBQD2iTIUgWDw6CuME1IQZD+OvLw==}
     dev: true
 
   /load-json-file/1.1.0:

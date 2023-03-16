@@ -1,6 +1,4 @@
-export interface Scene {
-  clearColor: string;
-}
+import { Scene } from '../scene';
 
 export class SceneManager {
   private sceneStack: Scene[] = [];
