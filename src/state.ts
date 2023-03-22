@@ -9,8 +9,7 @@ export class State {
     this.pointer = scene.pointer;
   }
 
-  public blend(previous: State, alpha: number): State {
-    console.log(previous, alpha);
+  public blend(_previous: State, _alpha: number): State {
     return this;
   }
 }

@@ -15,7 +15,5 @@ body {
 }
 
 #app canvas {
-  object-fit: contain;
-  max-height: 100%;
-  max-width: 100%;
+  cursor: none;
 }

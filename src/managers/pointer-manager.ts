@@ -3,12 +3,14 @@ export class PointerManager {
   private previousPointerState: boolean[] = [];
   private pointerLocation: [number, number][] = [];
   private lastActivePointer?: number;
+  private game: HTMLCanvasElement;
 
   public constructor(game: HTMLCanvasElement) {
     game.addEventListener('pointerdown', this.onPointerDown.bind(this));
     game.addEventListener('pointerup', this.onPointerUp.bind(this));
     game.addEventListener('pointermove', this.onPointerMove.bind(this));
     game.addEventListener('contextmenu', (ev) => ev.preventDefault());
+    this.game = game;
   }
 
   public hasPointerDown(pointerId = 0): boolean {
@@ -37,7 +39,7 @@ export class PointerManager {
 
   private onPointerMove(ev: PointerEvent): void {
     this.lastActivePointer = ev.pointerId;
-    this.pointerLocation[ev.pointerId] = [ev.offsetX, ev.offsetY];
+    this.pointerLocation[ev.pointerId] = [ev.clientX - this.game.offsetLeft, ev.clientY - this.game.offsetTop];
   }
 
   public tick(): void {
