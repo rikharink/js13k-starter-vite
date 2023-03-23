@@ -1,7 +1,7 @@
 import './style.css';
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
-import { Renderer } from './renderer';
+import { Renderer } from './rendering/renderer';
 import { Settings } from './settings';
 import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
@@ -10,11 +10,6 @@ import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scene';
 import { State } from './state';
 
-if (import.meta.env.DEV) {
-  const lil = await import('lil-gui');
-  const gui = new lil.GUI();
-  gui.add(Settings, 'fixedDeltaTime');
-}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const app = document.getElementById('app')!;
@@ -23,14 +18,22 @@ app.innerHTML = `
 `;
 const canvas = document.getElementById('g') as HTMLCanvasElement;
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const ctx = canvas.getContext('2d')!;
+const ctx = canvas.getContext('webgl2')!;
 
 const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
 
 const sceneManager = new SceneManager();
-sceneManager.pushScene(new BaseScene('black'));
+sceneManager.pushScene(new BaseScene('#1F1F1F'));
+
+if (import.meta.env.DEV) {
+  const lil = await import('lil-gui');
+  const gui = new lil.GUI();
+  gui.add(Settings, 'fixedDeltaTime');
+  gui.add(sceneManager.currentScene!, 'clearColor');
+}
+
 
 let audioSystem: AudioSystem | undefined = undefined;
 document.addEventListener(
@@ -41,7 +44,8 @@ document.addEventListener(
   },
   { once: true }
 );
-const renderer = new Renderer();
+
+const renderer = new Renderer(ctx);
 const rng = getRandom('I LOVE TINY GAMES');
 const luckyNumber = rng();
 console.debug('Your lucky number is: ', luckyNumber);

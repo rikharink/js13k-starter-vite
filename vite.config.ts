@@ -1,17 +1,15 @@
-import ampClosurePlugin from '@ampproject/rollup-plugin-closure-compiler';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import advzip from 'advzip-bin';
 import { execFileSync } from 'child_process';
 import CleanCSS from 'clean-css';
 import ect from 'ect-bin';
-import fs, { statSync } from 'fs';
-import { CompileOptions, compiler as ClosureCompiler } from 'google-closure-compiler';
+import { statSync } from 'fs';
 import htmlMinify from 'html-minifier-terser';
-import path from 'path';
 import { Input, InputAction, InputType, Packer } from 'roadroller';
 import { OutputAsset, OutputChunk, OutputOptions, RenderedChunk } from 'rollup';
 import { ECMA } from 'terser';
 import { defineConfig, IndexHtmlTransformContext, Plugin, PluginOption } from 'vite';
+import glsl from 'vite-plugin-glsl';
 
 // Use this setting to control the TypeScript compiler
 // ESBuild is built in with Vite, and runs very fast.
@@ -27,12 +25,6 @@ const TYPESCRIPT_COMPILER = process.env['TYPESCRIPT_COMPILER'] || 'esbuild'; // 
 // That may be useful if you want to let Closure Compiler do all minification.
 const VITE_MINIFY = process.env['VITE_MINIFY'] || 'terser'; // 'terser', 'esbuild', or false
 
-// Google Closure Compiler implementation.
-// 1) "closure" - Calls Google Closure Compiler directly.
-// 2) "amp" - Uses the AMP Project wrapper.  This provides slightly better results, but is more picky about syntax errors.
-// 3) "none" - Useful for debugging.
-const CLOSURE_COMPILER = process.env['CLOSURE_COMPILER'] || 'closure'; // 'closure', 'amp', or 'none'
-
 export default defineConfig(({ command, mode }) => {
   if (command !== 'build') {
     return {
@@ -44,30 +36,13 @@ export default defineConfig(({ command, mode }) => {
 
   console.log('TYPESCRIPT_COMPILER', TYPESCRIPT_COMPILER);
   console.log('VITE_MINIFY', VITE_MINIFY);
-  console.log('CLOSURE_COMPILER', CLOSURE_COMPILER);
 
-  const plugins: PluginOption[] = [];
+  const plugins: PluginOption[] = [
+    glsl()
+  ];
 
   if (TYPESCRIPT_COMPILER === 'tsc') {
     plugins.push(typescriptPlugin());
-  }
-
-  if (CLOSURE_COMPILER !== 'none') {
-    const closureOptions = {
-      language_in: 'UNSTABLE',
-      language_out: 'ECMASCRIPT_NEXT',
-      compilation_level: 'ADVANCED', // WHITESPACE_ONLY, SIMPLE, ADVANCED
-      externs: 'externs.js',
-      strict_mode_input: true,
-      jscomp_off: '*',
-      summary_detail_level: '3',
-    };
-
-    if (CLOSURE_COMPILER === 'closure') {
-      plugins.push(closureCompilerPlugin(closureOptions));
-    } else if (CLOSURE_COMPILER === 'amp') {
-      plugins.push(ampClosurePlugin(closureOptions));
-    }
   }
 
   plugins.push(roadrollerPlugin());
@@ -116,45 +91,6 @@ export default defineConfig(({ command, mode }) => {
     plugins,
   };
 });
-
-/**
- * Creates a Google Closure Compiler plugin to minify the JavaScript.
- * @param requestedCompileOptions The options passed to the Google Closure Compiler.
- * @returns The closure compiler plugin.
- */
-function closureCompilerPlugin(requestedCompileOptions: CompileOptions = {}): Plugin {
-  return {
-    name: 'closure-compiler',
-    renderChunk: (code: string, chunk: RenderedChunk, options: OutputOptions) => {
-      // https://rollupjs.org/guide/en/#renderchunk
-      if (!chunk.fileName.endsWith('.js')) {
-        // Returning null will apply no transformations.
-        return null;
-      }
-      return new Promise((resolve, reject) => {
-        const inputFileName = path.resolve(options.dir as string, 'closure-input.js');
-        const outputFileName = path.resolve(options.dir as string, 'closure-output.js');
-        fs.writeFileSync(inputFileName, code);
-
-        const closureCompiler = new ClosureCompiler({
-          ...requestedCompileOptions,
-          js: inputFileName,
-          js_output_file: outputFileName,
-        });
-
-        closureCompiler.run((exitCode, _stdOut, stdErr) => {
-          console.log('Closure Compiler exited with code ' + exitCode);
-          console.log(stdErr.trim());
-          if (exitCode === 0) {
-            resolve({ code: fs.readFileSync(outputFileName, 'utf8') });
-          } else {
-            reject(stdErr);
-          }
-        });
-      });
-    },
-  };
-}
 
 /**
  * Creates the Roadroller plugin that crunches the JS and CSS.

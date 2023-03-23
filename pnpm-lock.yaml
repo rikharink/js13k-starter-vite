@@ -25,6 +25,7 @@ specifiers:
   tslib: ^2.5.0
   typescript: ^4.9.3
   vite: ^4.1.0
+  vite-plugin-glsl: ^1.1.2
 
 devDependencies:
   '@ampproject/rollup-plugin-closure-compiler': 0.27.0_rollup@3.19.1
@@ -51,6 +52,7 @@ devDependencies:
   tslib: 2.5.0
   typescript: 4.9.5
   vite: 4.1.4_67ayhxtn77ihpqz7ip4pro4g64
+  vite-plugin-glsl: 1.1.2_rollup@3.19.1+vite@4.1.4
 
 packages:
 
@@ -3171,6 +3173,18 @@ packages:
       cloneable-readable: 1.1.3
       remove-trailing-separator: 1.1.0
       replace-ext: 1.0.1
+    dev: true
+
+  /vite-plugin-glsl/1.1.2_rollup@3.19.1+vite@4.1.4:
+    resolution: {integrity: sha512-zmXsfc1vn2MlYve9t3FAoWuhLyoCkNS1TuQL+TkXZL7tGmBjRErp10eNYxcse5tK9oUC5MyJpNc4ElpQnx8DoA==}
+    engines: {node: '>= 16.15.1', npm: '>= 8.11.0'}
+    peerDependencies:
+      vite: ^3.0.0 || ^4.0.0
+    dependencies:
+      '@rollup/pluginutils': 5.0.2_rollup@3.19.1
+      vite: 4.1.4_67ayhxtn77ihpqz7ip4pro4g64
+    transitivePeerDependencies:
+      - rollup
     dev: true
 
   /vite/4.1.4_67ayhxtn77ihpqz7ip4pro4g64:
