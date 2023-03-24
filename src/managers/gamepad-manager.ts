@@ -1,26 +1,21 @@
 export class GamepadManager {
+  private gamepads: Gamepad[] = [];
+
   public constructor() {
-    window.addEventListener('gamepadconnected', this._onGamepadConnected.bind(this));
-    window.addEventListener('gamepaddisconnected', this._onGamepadDisconnected.bind(this));
+    window.addEventListener('gamepadconnected', (e) => this.handleGamepadEvent(e.gamepad, true));
+    window.addEventListener('gamepaddisconnected', (e) => this.handleGamepadEvent(e.gamepad, false));
     for (const gp of navigator.getGamepads()) {
       if (gp == null) continue;
-      this._connectGamepad(gp);
+      this.handleGamepadEvent(gp, true);
     }
   }
 
-  private _onGamepadConnected(ev: GamepadEvent): void {
-    this._connectGamepad(ev.gamepad);
-  }
-  private _onGamepadDisconnected(ev: GamepadEvent): void {
-    this._disconnectGamepad(ev.gamepad);
-  }
-
-  private _connectGamepad(gamepad: Gamepad): void {
-    console.log(`connected gamepad ${gamepad.id}`);
-  }
-
-  private _disconnectGamepad(gamepad: Gamepad): void {
-    console.log(`disconnected gamepad ${gamepad.id}`);
+  private handleGamepadEvent(gamepad: Gamepad, connecting: boolean): void {
+    if (connecting) {
+      this.gamepads[gamepad.index] = gamepad;
+    } else {
+      delete this.gamepads[gamepad.index];
+    }
   }
 
   public tick(): void {
