@@ -5,7 +5,7 @@ export class Shader {
         this.program = program;
     }
 
-    program: WebGLProgram;
+    public program: WebGLProgram;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
 
