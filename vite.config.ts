@@ -45,7 +45,7 @@ export default defineConfig(({ command, mode }) => {
     plugins.push(typescriptPlugin());
   }
 
-  plugins.push(roadrollerPlugin());
+  //plugins.push(roadrollerPlugin());
   plugins.push(ectPlugin());
   plugins.push(advzipPlugin());
 
@@ -184,7 +184,7 @@ function ectPlugin(): Plugin {
     name: 'vite:ect',
     writeBundle: async (): Promise<void> => {
       try {
-        const args = ['-strip', '-zip', '-10009', 'dist/index.html', 'dist/i.png'];
+        const args = ['-strip', '-zip', '-10009', 'dist/index.html'];
         const result = execFileSync(ect, args);
         console.log('ECT result', result.toString().trim());
         const stats = statSync('dist/index.zip');

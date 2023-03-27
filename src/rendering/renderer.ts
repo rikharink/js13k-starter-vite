@@ -1,7 +1,7 @@
 import frag from './default.frag?raw';
 import vert from './default.vert?raw';
 
-import { GL_ARRAY_BUFFER, GL_COLOR_BUFFER_BIT, GL_DEPTH_TEST, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, GL_STENCIL_BUFFER_BIT } from '../gl-constants';
+import { GL_COLOR_BUFFER_BIT, GL_DEPTH_TEST, GL_STENCIL_BUFFER_BIT } from '../gl-constants';
 import { hexToNormalizedRgb } from '../math/color';
 import { Settings } from '../settings';
 import { State } from '../state';
