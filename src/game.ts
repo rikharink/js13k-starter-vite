@@ -48,8 +48,6 @@ let _raf = 0;
 let _then = 0;
 let _accumulator = 0;
 let _previousState: State | undefined = undefined;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let t = 0;
 
 function gameloop(now: number): void {
   const dt = now - _then;
@@ -61,7 +59,6 @@ function gameloop(now: number): void {
   _accumulator += dt;
   while (_accumulator >= Settings.fixedDeltaTime) {
     //FIXED STEP
-    t += Settings.fixedDeltaTime;
     _accumulator -= Settings.fixedDeltaTime;
   }
 
