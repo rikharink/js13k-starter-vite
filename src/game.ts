@@ -10,50 +10,46 @@ import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scene';
 import { State } from './state';
 
-
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const app = document.getElementById('app')!;
 app.innerHTML = `
 <canvas id=g width=${Settings.resolution[0]} height=${Settings.resolution[1]}></canvas>
 `;
 const canvas = document.getElementById('g') as HTMLCanvasElement;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const ctx = canvas.getContext('webgl2')!;
 
 const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
 
+const rng = getRandom(`${Math.random()}`);
+
+const scene = new BaseScene([rng(), rng(), rng()]);
 const sceneManager = new SceneManager();
-sceneManager.pushScene(new BaseScene('#1F1F1F'));
+sceneManager.pushScene(scene);
 
 if (import.meta.env.DEV) {
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
-  gui.add(sceneManager.currentScene!, 'clearColor');
+  gui.addColor(sceneManager.currentScene, 'clearColor');
 }
-
 
 let audioSystem: AudioSystem | undefined = undefined;
 document.addEventListener(
   'pointerdown',
   () => {
-    console.log('init audio');
     audioSystem = new AudioSystem();
   },
   { once: true }
 );
 
 const renderer = new Renderer(ctx);
-const rng = getRandom('I LOVE TINY GAMES');
-const luckyNumber = rng();
-console.debug('Your lucky number is: ', luckyNumber);
 let _raf = 0;
 let _then = 0;
 let _accumulator = 0;
 let _previousState: State | undefined = undefined;
-//let _t = 0;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let t = 0;
 
 function gameloop(now: number): void {
   const dt = now - _then;
@@ -65,7 +61,7 @@ function gameloop(now: number): void {
   _accumulator += dt;
   while (_accumulator >= Settings.fixedDeltaTime) {
     //FIXED STEP
-    //_t += Settings.fixedDeltaTime;
+    t += Settings.fixedDeltaTime;
     _accumulator -= Settings.fixedDeltaTime;
   }
 

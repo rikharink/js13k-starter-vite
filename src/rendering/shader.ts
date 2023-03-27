@@ -1,4 +1,4 @@
-import { GL_CURRENT_PROGRAM } from '../gl-constants';
+import { GL_CURRENT_PROGRAM } from './gl-constants';
 
 export class Shader {
     public constructor(program: WebGLProgram) {

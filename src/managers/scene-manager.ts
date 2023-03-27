@@ -3,8 +3,10 @@ import { Scene } from '../scene';
 export class SceneManager {
   private sceneStack: Scene[] = [];
 
-  public get currentScene(): Scene | undefined {
-    if (this.sceneStack.length == 0) return;
+  public get currentScene(): Scene {
+    if (this.sceneStack.length == 0) {
+      throw Error("sceneStack shouldn't be empty");
+    }
     const scene = this.sceneStack[this.sceneStack.length - 1];
     return scene;
   }
@@ -14,6 +16,7 @@ export class SceneManager {
   }
 
   public popScene(): Scene | undefined {
+    if (this.sceneStack.length <= 1) return;
     return this.sceneStack.pop();
   }
 }
