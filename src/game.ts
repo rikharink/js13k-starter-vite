@@ -10,19 +10,23 @@ import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scene';
 import { State } from './state';
 import Stats from 'stats.js';
+import { ResourceManager } from './managers/resource-manager';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
 <canvas id=g width=${Settings.resolution[0]} height=${Settings.resolution[1]}></canvas>
 `;
 const canvas = document.getElementById('g') as HTMLCanvasElement;
-const ctx = canvas.getContext('webgl2')!;
+const gl = canvas.getContext('webgl2')!;
 
 const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
 
-const rng = getRandom(`${Math.random()}`);
+export const resourceManager = new ResourceManager();
+await resourceManager.init(gl);
+
+export const rng = getRandom(`${Math.random()}`);
 
 const scene = new BaseScene([rng(), rng(), rng()]);
 const sceneManager = new SceneManager();
@@ -50,7 +54,7 @@ document.addEventListener(
   { once: true }
 );
 
-const renderer = new Renderer(ctx);
+const renderer = new Renderer(gl);
 let _raf = 0;
 let _then = 0;
 let _accumulator = 0;
@@ -67,6 +71,7 @@ function gameloop(now: number): void {
   _accumulator += dt;
   while (_accumulator >= Settings.fixedDeltaTime) {
     //FIXED STEP
+    sceneManager.currentScene.tick(gl);
     _accumulator -= Settings.fixedDeltaTime;
   }
 
@@ -78,7 +83,7 @@ function gameloop(now: number): void {
   const currentState = sceneManager.currentScene?.getState();
   if (currentState) {
     const renderState = _previousState ? currentState.blend(_previousState, alpha) : currentState;
-    renderer.render(ctx, renderState, alpha);
+    renderer.render(gl, renderState, alpha);
   }
 
   keyboardManager.tick();
