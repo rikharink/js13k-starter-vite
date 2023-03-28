@@ -9,6 +9,7 @@ import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scene';
 import { State } from './state';
+import Stats from 'stats.js';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -27,11 +28,17 @@ const scene = new BaseScene([rng(), rng(), rng()]);
 const sceneManager = new SceneManager();
 sceneManager.pushScene(scene);
 
+let stats: Stats | undefined = undefined;
+
 if (import.meta.env.DEV) {
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
   gui.addColor(sceneManager.currentScene, 'clearColor');
+
+  stats = new Stats();
+  stats.showPanel(0);
+  document.body.appendChild(stats.dom);
 }
 
 let audioSystem: AudioSystem | undefined = undefined;
@@ -50,6 +57,7 @@ let _accumulator = 0;
 let _previousState: State | undefined = undefined;
 
 function gameloop(now: number): void {
+  stats?.begin();
   const dt = now - _then;
   if (dt > 1000) {
     _then = now;
@@ -78,6 +86,7 @@ function gameloop(now: number): void {
   pointerManager.tick();
   _then = now;
   _previousState = currentState;
+  stats?.end();
   _raf = requestAnimationFrame(gameloop);
 }
 
