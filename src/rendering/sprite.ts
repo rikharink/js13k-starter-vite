@@ -7,7 +7,6 @@ import { Shader } from './shader';
 import { NormalizedRgbaColor, normalizeRgb, RgbColor } from '../math/color';
 import { GL_TEXTURE0, GL_TEXTURE_2D } from './gl-constants';
 import { generateSolidTexture } from './textures';
-import { resourceManager } from '../game';
 
 //TODO: texture atlas support (finish texture matrix setup)
 //TODO: test with actual texture
@@ -23,6 +22,7 @@ export class Sprite implements Renderable {
 
   public constructor(
     gl: WebGL2RenderingContext,
+    shader: Shader,
     size: Vector2,
     position: Vector2,
     color: RgbColor,
@@ -30,10 +30,10 @@ export class Sprite implements Renderable {
     texture?: WebGLTexture,
     textureUnit?: number
   ) {
+    this.shader = shader;
     this.size = size;
     this.position = position;
     this.anchor = anchor ?? [0, 0];
-    this.shader = resourceManager['sprite'];
     this.mesh = new Quad(gl, this.shader);
     this.textureUnit = textureUnit ?? 0;
     this.color = [...normalizeRgb(color), 1];

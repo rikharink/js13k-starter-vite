@@ -11,6 +11,13 @@ export class SceneManager {
     return scene;
   }
 
+  public replaceScene(scene: Scene): void {
+    if (this.sceneStack.length > 0) {
+      this.sceneStack.pop();
+    }
+    this.pushScene(scene);
+  }
+
   public pushScene(scene: Scene): void {
     this.sceneStack.push(scene);
   }

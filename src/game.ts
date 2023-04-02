@@ -8,9 +8,8 @@ import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scene';
-import { State } from './state';
 import Stats from 'stats.js';
-import { ResourceManager } from './managers/resource-manager';
+import { ResourceManagerBuilder } from './managers/resource-manager';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -23,21 +22,23 @@ const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
 
-export const resourceManager = new ResourceManager();
-await resourceManager.init(gl);
-
 export const rng = getRandom(`${Math.random()}`);
 
-const scene = new BaseScene([rng(), rng(), rng()]);
+const renderer = new Renderer(gl);
+const resourceManager = await new ResourceManagerBuilder(gl, renderer)
+  .addDelay(500)
+  .addDelay(500)
+  .addDelay(500)
+  .build(gl);
 const sceneManager = new SceneManager();
-sceneManager.pushScene(scene);
+sceneManager.pushScene(new BaseScene([rng() * 255, rng() * 255, rng() * 255], resourceManager));
 
 let stats: Stats | undefined = undefined;
-
 if (import.meta.env.DEV) {
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
+  console.log(sceneManager.currentScene);
   gui.addColor(sceneManager.currentScene, 'clearColor');
 
   stats = new Stats();
@@ -54,11 +55,9 @@ document.addEventListener(
   { once: true }
 );
 
-const renderer = new Renderer(gl);
 let _raf = 0;
 let _then = 0;
 let _accumulator = 0;
-let _previousState: State | undefined = undefined;
 
 function gameloop(now: number): void {
   stats?.begin();
@@ -80,17 +79,12 @@ function gameloop(now: number): void {
     sceneManager.currentScene.pointer = pointerManager.getPointerLocation();
   }
   const alpha = _accumulator / Settings.fixedDeltaTime;
-  const currentState = sceneManager.currentScene?.getState();
-  if (currentState) {
-    const renderState = _previousState ? currentState.blend(_previousState, alpha) : currentState;
-    renderer.render(gl, renderState, alpha);
-  }
+  renderer.render(gl, resourceManager, sceneManager.currentScene, alpha);
 
   keyboardManager.tick();
   gamepadManager.tick();
   pointerManager.tick();
   _then = now;
-  _previousState = currentState;
   stats?.end();
   _raf = requestAnimationFrame(gameloop);
 }
