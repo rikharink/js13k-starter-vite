@@ -1,6 +1,6 @@
 import { NormalizedRgbColor } from './math/color';
 import { Sprite } from './rendering/sprite';
-import { Scene } from './scene';
+import { Scene } from './scenes/scene';
 
 export class State {
   clearColor: NormalizedRgbColor;

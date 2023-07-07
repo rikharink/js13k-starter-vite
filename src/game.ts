@@ -1,4 +1,6 @@
 import './style.css';
+import spriteVert from './rendering/default.vert?raw';
+import spriteFrag from './rendering/default.frag?raw';
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
 import { Renderer } from './rendering/renderer';
@@ -7,7 +9,7 @@ import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
-import { BaseScene } from './scene';
+import { BaseScene } from './scenes/base-scene';
 import Stats from 'stats.js';
 import { ResourceManagerBuilder } from './managers/resource-manager';
 
@@ -25,13 +27,11 @@ const pointerManager = new PointerManager(canvas);
 export const rng = getRandom(`${Math.random()}`);
 
 const renderer = new Renderer(gl);
-const resourceManager = await new ResourceManagerBuilder(gl, renderer)
-  .addDelay(500)
-  .addDelay(500)
-  .addDelay(500)
-  .build(gl);
 const sceneManager = new SceneManager();
-sceneManager.pushScene(new BaseScene([rng() * 255, rng() * 255, rng() * 255], resourceManager));
+const resourceManager = await new ResourceManagerBuilder()
+  .addShader('sprite', spriteVert, spriteFrag)
+  .build(gl, sceneManager);
+sceneManager.pushScene(new BaseScene([rng(), rng(), rng()], resourceManager));
 
 let stats: Stats | undefined = undefined;
 if (import.meta.env.DEV) {
@@ -79,7 +79,7 @@ function gameloop(now: number): void {
     sceneManager.currentScene.pointer = pointerManager.getPointerLocation();
   }
   const alpha = _accumulator / Settings.fixedDeltaTime;
-  renderer.render(gl, resourceManager, sceneManager.currentScene, alpha);
+  renderer.render(gl, sceneManager.currentScene, alpha);
 
   keyboardManager.tick();
   gamepadManager.tick();

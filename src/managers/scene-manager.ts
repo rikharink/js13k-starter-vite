@@ -1,4 +1,4 @@
-import { Scene } from '../scene';
+import { Scene } from '../scenes/scene';
 
 export class SceneManager {
   private sceneStack: Scene[] = [];
@@ -19,11 +19,13 @@ export class SceneManager {
   }
 
   public pushScene(scene: Scene): void {
+    scene.onPush();
     this.sceneStack.push(scene);
   }
 
   public popScene(): Scene | undefined {
-    if (this.sceneStack.length <= 1) return;
+    if (this.sceneStack.length == 0) return;
+    this.currentScene.onPop();
     return this.sceneStack.pop();
   }
 }
