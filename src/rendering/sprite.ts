@@ -54,7 +54,7 @@ export class Sprite implements Renderable {
     gl.uniformMatrix4fv(this.shader['tmatrix'], false, tmat);
 
     gl.uniform4fv(this.shader['color'], this.color);
-    gl.uniform1i(this.shader['tex'], this.textureUnit);
+    gl.uniform1i(this.shader['t'], this.textureUnit);
     gl.activeTexture(GL_TEXTURE0 + this.textureUnit);
     gl.bindTexture(GL_TEXTURE_2D, this.texture);
     this.mesh.render(gl);

@@ -50,7 +50,11 @@ export default defineConfig(({ command, mode }) => {
   plugins.push(advzipPlugin());
 
   return {
-    esbuild: TYPESCRIPT_COMPILER === 'esbuild' ? {} : false,
+    esbuild: TYPESCRIPT_COMPILER === 'esbuild' ? {
+      supported: {
+        'top-level-await': true
+      }
+    } : false,
     build: {
       target: 'esnext',
       minify: VITE_MINIFY as 'esbuild' | 'terser' | false,

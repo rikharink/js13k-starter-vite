@@ -1,6 +1,8 @@
 import './style.css';
 import spriteVert from './rendering/default.vert?raw';
 import spriteFrag from './rendering/default.frag?raw';
+import postVert from './rendering/post.vert?raw';
+import postFrag from './rendering/post.frag?raw';
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
 import { Renderer } from './rendering/renderer';
@@ -26,11 +28,14 @@ const pointerManager = new PointerManager(canvas);
 
 export const rng = getRandom(`${Math.random()}`);
 
-const renderer = new Renderer(gl);
 const sceneManager = new SceneManager();
 const resourceManager = await new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
+  .addShader('post', postVert, postFrag)
   .build(gl, sceneManager);
+
+const renderer = new Renderer(gl, resourceManager);
+
 sceneManager.pushScene(new BaseScene([rng(), rng(), rng()], resourceManager));
 
 let stats: Stats | undefined = undefined;
@@ -38,7 +43,6 @@ if (import.meta.env.DEV) {
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
-  console.log(sceneManager.currentScene);
   gui.addColor(sceneManager.currentScene, 'clearColor');
 
   stats = new Stats();

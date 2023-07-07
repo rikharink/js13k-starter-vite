@@ -8,6 +8,7 @@ import {
   GL_DYNAMIC_DRAW,
   GL_STATIC_DRAW,
   GL_FLOAT,
+  GL_FRAMEBUFFER,
 } from './gl-constants';
 import { Shader } from './shader';
 
@@ -74,4 +75,32 @@ export function setupAttributeBuffer(
   gl.vertexAttribPointer(attributeLocation, size, GL_FLOAT, false, stride, offset);
   gl.enableVertexAttribArray(attributeLocation);
   return buffer;
+}
+
+export function createFramebuffer(gl: WebGL2RenderingContext): Framebuffer {
+  const buffer = gl.createFramebuffer()!;
+  gl.bindFramebuffer(GL_FRAMEBUFFER, buffer);
+  const texture = createTexture(gl, [gl.drawingBufferWidth, gl.drawingBufferHeight]);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+  return {
+    texture: texture,
+    buffer: buffer,
+  };
+}
+
+export function createTexture(gl: WebGL2RenderingContext, size: [number, number]): WebGLTexture {
+  const texture = gl.createTexture()!;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size[0], size[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  return texture;
+}
+
+export interface Framebuffer {
+  texture: WebGLTexture;
+  buffer: WebGLFramebuffer;
 }
