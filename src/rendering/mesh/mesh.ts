@@ -6,7 +6,7 @@ import {
   GL_UNSIGNED_SHORT,
 } from '../gl-constants';
 import { Renderable } from '../renderable';
-import { Shader } from '../shader';
+import { Shader } from '../shaders/shader';
 
 export abstract class Mesh implements Renderable {
   protected vao: WebGLVertexArrayObject;

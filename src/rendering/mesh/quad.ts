@@ -1,4 +1,4 @@
-import { Shader } from '../shader';
+import { Shader } from '../shaders/shader';
 import { Mesh } from './mesh';
 
 export class Quad extends Mesh {

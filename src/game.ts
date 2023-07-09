@@ -1,8 +1,8 @@
 import './style.css';
-import spriteVert from './rendering/default.vert?raw';
-import spriteFrag from './rendering/default.frag?raw';
-import postVert from './rendering/post.vert?raw';
-import postFrag from './rendering/post.frag?raw';
+import spriteVert from './rendering/shaders/default.vert?raw';
+import spriteFrag from './rendering/shaders/default.frag?raw';
+import postVert from './rendering/shaders/post.vert?raw';
+import postFrag from './rendering/shaders/post.frag?raw';
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
 import { Renderer } from './rendering/renderer';
@@ -14,6 +14,9 @@ import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scenes/base-scene';
 import Stats from 'stats.js';
 import { ResourceManagerBuilder } from './managers/resource-manager';
+import { ColorFilter } from './rendering/post-effects/color-filter';
+import { InvertColor } from './rendering/post-effects/invert-color';
+import { Passthrough } from './rendering/post-effects/passthrough';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -34,9 +37,14 @@ const resourceManager = await new ResourceManagerBuilder()
   .addShader('post', postVert, postFrag)
   .build(gl, sceneManager);
 
+resourceManager
+  .addPostEffect('cf', new ColorFilter(gl, resourceManager))
+  .addPostEffect('inv', new InvertColor(gl, resourceManager))
+  .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
+
 const renderer = new Renderer(gl, resourceManager);
 
-sceneManager.pushScene(new BaseScene([rng(), rng(), rng()], resourceManager));
+sceneManager.pushScene(new BaseScene(gl, [rng(), rng(), rng()], resourceManager));
 
 let stats: Stats | undefined = undefined;
 if (import.meta.env.DEV) {
@@ -44,6 +52,9 @@ if (import.meta.env.DEV) {
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
   gui.addColor(sceneManager.currentScene, 'clearColor');
+  gui.addColor(resourceManager.getPostEffect('cf'), 'color').name('color filter');
+  gui.add(resourceManager.getPostEffect('cf'), 'isEnabled').name('color filter enabled');
+  gui.add(resourceManager.getPostEffect('inv'), 'isEnabled').name('invert colors');
 
   stats = new Stats();
   stats.showPanel(0);
@@ -56,7 +67,7 @@ document.addEventListener(
   () => {
     audioSystem = new AudioSystem();
   },
-  { once: true }
+  { once: true },
 );
 
 let _raf = 0;

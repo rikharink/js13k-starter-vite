@@ -3,7 +3,7 @@ import { add, Vector2 } from '../math/vector2';
 import { Mesh } from './mesh/mesh';
 import { Quad } from './mesh/quad';
 import { Renderable } from './renderable';
-import { Shader } from './shader';
+import { Shader } from './shaders/shader';
 import { NormalizedRgbaColor, normalizeRgb, RgbColor } from '../math/color';
 import { GL_TEXTURE0, GL_TEXTURE_2D } from './gl-constants';
 import { generateSolidTexture } from './textures';

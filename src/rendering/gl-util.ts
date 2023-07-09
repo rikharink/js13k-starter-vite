@@ -8,9 +8,17 @@ import {
   GL_DYNAMIC_DRAW,
   GL_STATIC_DRAW,
   GL_FLOAT,
-  GL_FRAMEBUFFER,
+  GL_TEXTURE_2D,
+  GL_TEXTURE_WRAP_S,
+  GL_TEXTURE_WRAP_T,
+  GL_TEXTURE_MIN_FILTER,
+  GL_TEXTURE_MAG_FILTER,
+  GL_RGBA,
+  GL_UNSIGNED_BYTE,
+  GL_CLAMP_TO_EDGE,
+  GL_NEAREST,
 } from './gl-constants';
-import { Shader } from './shader';
+import { Shader } from './shaders/shader';
 
 export function initShaderProgram(gl: WebGL2RenderingContext, vertexSource: string, fragSource: string): Shader | null {
   const vertexShader = loadShader(gl, GL_VERTEX_SHADER, vertexSource)!;
@@ -63,7 +71,7 @@ export function setupAttributeBuffer(
   data: BufferSource | ArrayBufferView | null,
   size: number,
   stride = 0,
-  offset = 0
+  offset = 0,
 ): WebGLBuffer {
   const buffer = gl.createBuffer()!;
   const attributeLocation = shader[attribute];
@@ -77,30 +85,42 @@ export function setupAttributeBuffer(
   return buffer;
 }
 
-export function createFramebuffer(gl: WebGL2RenderingContext): Framebuffer {
-  const buffer = gl.createFramebuffer()!;
-  gl.bindFramebuffer(GL_FRAMEBUFFER, buffer);
-  const texture = createTexture(gl, [gl.drawingBufferWidth, gl.drawingBufferHeight]);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-
-  return {
-    texture: texture,
-    buffer: buffer,
-  };
-}
 
 export function createTexture(gl: WebGL2RenderingContext, size: [number, number]): WebGLTexture {
   const texture = gl.createTexture()!;
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size[0], size[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.bindTexture(GL_TEXTURE_2D, texture);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
   return texture;
 }
 
-export interface Framebuffer {
-  texture: WebGLTexture;
-  buffer: WebGLFramebuffer;
+export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<WebGLTexture> {
+  const texture = gl.createTexture()!;
+  gl.bindTexture(GL_TEXTURE_2D, texture);
+  const level = 0;
+  const internalFormat = GL_RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = GL_RGBA;
+  const srcType = GL_UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      resolve(texture);
+    };
+    image.onerror = (err) => {
+      reject(err);
+    };
+
+    image.src = url;
+  });
 }

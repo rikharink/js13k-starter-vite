@@ -1,7 +1,7 @@
 import { rng } from '../game';
 import { ResourceManager } from '../managers/resource-manager';
 import { NormalizedRgbColor } from '../math/color';
-import { Shader } from '../rendering/shader';
+import { Shader } from '../rendering/shaders/shader';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
 import { State } from '../state';
@@ -11,13 +11,24 @@ export class BaseScene implements Scene {
   public pointer: [x: number, y: number];
   public clearColor: NormalizedRgbColor;
   public sprites: Sprite[];
-  private spriteShader: Shader;
+  private shader: Shader;
 
-  public constructor(clearColor: NormalizedRgbColor, resourceManager: ResourceManager) {
+  public constructor(gl: WebGL2RenderingContext, clearColor: NormalizedRgbColor, resourceManager: ResourceManager) {
     this.clearColor = clearColor;
     this.pointer = [0, 0];
     this.sprites = [];
-    this.spriteShader = resourceManager['sprite'];
+    this.shader = resourceManager.shaders.get('sprite')!;
+    for (let i = 0; i < 10; i++) {
+      this.sprites.push(
+        new Sprite(
+          gl,
+          this.shader,
+          [10, 10],
+          [rng() * Settings.resolution[0], rng() * Settings.resolution[1]],
+          [255 * rng(), 255 * rng(), 255 * rng()],
+        ),
+      );
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -25,20 +36,10 @@ export class BaseScene implements Scene {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   public onPop(): void {}
 
-  public tick(gl: WebGL2RenderingContext): void {
-    this.sprites.push(
-      new Sprite(
-        gl,
-        this.spriteShader,
-        [10, 10],
-        [rng() * Settings.resolution[0], rng() * Settings.resolution[1]],
-        [255 * rng(), 255 * rng(), 255 * rng()]
-      )
-    );
-  }
+  public tick(_gl: WebGL2RenderingContext): void {}
 
   public render(gl: WebGL2RenderingContext): void {
-    this.spriteShader.enable(gl);
+    this.shader.enable(gl);
     for (const sprite of this.sprites) {
       sprite.render(gl);
     }
