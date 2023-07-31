@@ -2,6 +2,7 @@ import {
   GL_COLOR_BUFFER_BIT,
   GL_CULL_FACE,
   GL_DEPTH_BUFFER_BIT,
+  
   GL_DEPTH_TEST,
   GL_STENCIL_BUFFER_BIT,
 } from './gl-constants';
@@ -23,8 +24,8 @@ export class Renderer {
 
   public render(gl: WebGL2RenderingContext, scene: Scene, _alpha: number): void {
     this.sceneBuffer.enable(gl);
-    gl.enable(GL_DEPTH_TEST);
-    gl.enable(GL_CULL_FACE);
+    gl.disable(GL_DEPTH_TEST);
+    gl.disable(GL_CULL_FACE);
     const clearColor = scene.clearColor;
     gl.clearColor(clearColor[0], clearColor[1], clearColor[2], 1);
     gl.viewport(0, 0, Settings.resolution[0], Settings.resolution[1]);

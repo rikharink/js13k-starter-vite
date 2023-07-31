@@ -108,13 +108,13 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<We
   const srcFormat = GL_RGBA;
   const srcType = GL_UNSIGNED_BYTE;
   const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+  gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
-      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.bindTexture(GL_TEXTURE_2D, texture);
+      gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+      gl.generateMipmap(GL_TEXTURE_2D);
       resolve(texture);
     };
     image.onerror = (err) => {

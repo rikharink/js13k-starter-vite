@@ -23,7 +23,7 @@ export class BaseScene implements Scene {
         new Sprite(
           gl,
           this.shader,
-          [10, 10],
+          [64, 64],
           [rng() * Settings.resolution[0], rng() * Settings.resolution[1]],
           [255 * rng(), 255 * rng(), 255 * rng()],
         ),

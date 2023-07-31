@@ -23,21 +23,21 @@ export class AudioSystem {
     this.fx.connect(this.master);
   }
 
-  public async mute(): Promise<void> {
+  public mute(): void {
     if (this.muted) return;
     this.master.disconnect();
     this.muted = true;
-    await this.ctx.suspend();
+    this.ctx.suspend();
   }
 
-  public async unmute(): Promise<void> {
+  public unmute(): void {
     if (!this.muted) return;
     this.master.connect(this.ctx.destination);
     this.muted = false;
-    await this.ctx.resume();
+    this.ctx.resume();
   }
 
-  public async toggleMute(): Promise<void> {
-    this.muted ? await this.unmute() : await this.mute();
+  public toggleMute(): void {
+    this.muted ? this.unmute() : this.mute();
   }
 }

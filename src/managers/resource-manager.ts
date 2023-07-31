@@ -34,7 +34,7 @@ export class ResourceManager {
 type ShaderToLoad = [key: string, vert: string, frag: string];
 type ImageToLoad = [key: string, uri: string];
 type TextureToGenerate = [key: string, generator: TextureGenerator];
-type TextureGenerator = () => Promise<WebGLTexture>;
+type TextureGenerator = () => WebGLTexture;
 
 export class ResourceManagerBuilder {
   private mgr = new ResourceManager();
@@ -57,7 +57,7 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public async build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
+  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): ResourceManager {
     const loaderScene = new LoaderScene([0, 0, 0]);
 
     sceneManager.pushScene(loaderScene);
@@ -72,13 +72,15 @@ export class ResourceManagerBuilder {
     }
 
     for (const [key, generator] of this.texturesToGenerate) {
-      this.mgr.images.set(key, await generator());
+      this.mgr.images.set(key, generator());
       incrementProgress();
     }
 
     for (const [key, uri] of this.imagesToLoad) {
-      this.mgr.images.set(key, await loadTexture(gl, uri));
-      incrementProgress();
+      loadTexture(gl, uri).then((t) => {
+        this.mgr.images.set(key, t);
+        incrementProgress();
+      });
     }
 
     for (const [key, vert, frag] of this.shadersToLoad) {

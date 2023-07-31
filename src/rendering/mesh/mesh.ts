@@ -1,6 +1,7 @@
 import {
   GL_ARRAY_BUFFER,
   GL_ELEMENT_ARRAY_BUFFER,
+  GL_FLOAT,
   GL_STATIC_DRAW,
   GL_TRIANGLES,
   GL_UNSIGNED_SHORT,
@@ -14,6 +15,7 @@ export abstract class Mesh implements Renderable {
   protected indices: Uint16Array;
   vertexBuffer: WebGLBuffer;
   indexBuffer: WebGLBuffer;
+  uvBuffer: WebGLBuffer;
 
   protected constructor(gl: WebGL2RenderingContext, vertices: Float32Array, indices: Uint16Array, material: Shader) {
     this.vao = gl.createVertexArray()!;
@@ -22,13 +24,24 @@ export abstract class Mesh implements Renderable {
     this.indices = indices;
     this.vertexBuffer = gl.createBuffer()!;
     this.indexBuffer = gl.createBuffer()!;
+    this.uvBuffer = gl.createBuffer()!;
     gl.bindBuffer(GL_ARRAY_BUFFER, this.vertexBuffer);
     gl.bufferData(GL_ARRAY_BUFFER, this.vertices, GL_STATIC_DRAW);
     gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this.indices, GL_STATIC_DRAW);
-    const coord = material['pos'];
-    gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(coord);
+    gl.bindBuffer(GL_ARRAY_BUFFER, this.uvBuffer);
+    const pos = material['a_position'];
+    const uv = material['a_texcoord'];
+    gl.vertexAttribPointer(pos, 2, GL_FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+    gl.vertexAttribPointer(
+      uv,
+      2,
+      GL_FLOAT,
+      false,
+      4 * Float32Array.BYTES_PER_ELEMENT,
+      2 * Float32Array.BYTES_PER_ELEMENT,
+    );
+
     gl.bindVertexArray(null);
   }
 

@@ -1,14 +1,12 @@
 #version 300 es
-precision highp float;
+in vec4 a_position;
+in vec2 a_texcoord;
 
-in vec3 pos;
+out vec2 v_texcoord;
 
-uniform mat4 matrix;
-uniform mat4 tmatrix;
+uniform mat4 u_mvpMatrix;
 
-out vec2 uv;
-
-void main(){
-    gl_Position=matrix*vec4(pos,1.);
-    uv=(tmatrix*vec4(pos,1.)).xy;
+void main() {
+    gl_Position = u_mvpMatrix * a_position;
+    v_texcoord = a_texcoord;
 }

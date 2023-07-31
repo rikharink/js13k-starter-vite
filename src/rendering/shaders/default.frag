@@ -1,13 +1,13 @@
 #version 300 es
 precision highp float;
 
-in vec2 uv;
+in vec2 v_texcoord;
 
-uniform sampler2D t;
-uniform vec4 color;
+out vec4 outputColor;
 
-out highp vec4 c;
+uniform sampler2D u_atlas;
+uniform vec4 u_blend;
 
-void main(void){
-  c=texture(t,uv)*color;
+void main() {
+  outputColor = texture(u_atlas, v_texcoord) * u_blend;
 }

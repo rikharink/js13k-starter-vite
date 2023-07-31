@@ -1,7 +1,7 @@
 import { Tone, Frequency, Note, Octave, Mode, Chord } from './types';
 
-export async function loadAudioWorklet(ctx: AudioContext, source: string): Promise<void> {
-  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([source], { type: 'text/javascript' })));
+export function loadAudioWorklet(ctx: AudioContext, source: string): void {
+  ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([source], { type: 'text/javascript' })));
 }
 
 export function getWhiteNoiseSample(nr_samples: number): Float32Array {

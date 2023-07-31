@@ -12,11 +12,11 @@ import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scenes/base-scene';
-import Stats from 'stats.js';
 import { ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorFilter } from './rendering/post-effects/color-filter';
 import { InvertColor } from './rendering/post-effects/invert-color';
 import { Passthrough } from './rendering/post-effects/passthrough';
+import { generateWhiteNoiseTexture } from './rendering/textures';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -32,9 +32,10 @@ const pointerManager = new PointerManager(canvas);
 export const rng = getRandom(`${Math.random()}`);
 
 const sceneManager = new SceneManager();
-const resourceManager = await new ResourceManagerBuilder()
+const resourceManager = new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
   .addShader('post', postVert, postFrag)
+  .addProceduralTexture('noise', () => generateWhiteNoiseTexture(gl, [512, 512], rng))
   .build(gl, sceneManager);
 
 resourceManager
@@ -48,6 +49,7 @@ sceneManager.pushScene(new BaseScene(gl, [rng(), rng(), rng()], resourceManager)
 
 let stats: Stats | undefined = undefined;
 if (import.meta.env.DEV) {
+  const s = await import('stats.js');
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
   gui.add(Settings, 'fixedDeltaTime');
@@ -55,8 +57,7 @@ if (import.meta.env.DEV) {
   gui.addColor(resourceManager.getPostEffect('cf'), 'color').name('color filter');
   gui.add(resourceManager.getPostEffect('cf'), 'isEnabled').name('color filter enabled');
   gui.add(resourceManager.getPostEffect('inv'), 'isEnabled').name('invert colors');
-
-  stats = new Stats();
+  stats = new s.default();
   stats.showPanel(0);
   document.body.appendChild(stats.dom);
 }
@@ -104,33 +105,33 @@ function gameloop(now: number): void {
   _raf = requestAnimationFrame(gameloop);
 }
 
-async function pause(): Promise<void> {
+function pause(): void {
   if (_raf === 0) {
     return;
   }
   if (audioSystem) {
-    await audioSystem?.mute();
+    audioSystem?.mute();
   }
   cancelAnimationFrame(_raf);
   _raf = 0;
 }
 
-async function resume(): Promise<void> {
+function resume(): void {
   if (_raf !== 0) {
     return;
   }
   if (audioSystem) {
-    await audioSystem.unmute();
+    audioSystem.unmute();
   }
   _raf = requestAnimationFrame(gameloop);
 }
 
 requestAnimationFrame(gameloop);
 
-document.addEventListener('visibilitychange', async () => {
+document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    await pause();
+    pause();
   } else {
-    await resume();
+    resume();
   }
 });
