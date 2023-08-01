@@ -1,5 +1,6 @@
+import { Milliseconds, Seconds } from '../../types';
 import { Framebuffer } from '../framebuffer';
-import { GL_CULL_FACE, GL_DEPTH_TEST, GL_FRAMEBUFFER, GL_TEXTURE_2D, GL_TRIANGLES } from '../gl-constants';
+import { GL_CULL_FACE, GL_DEPTH_TEST, GL_FRAMEBUFFER, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from '../gl-constants';
 import { Shader } from '../shaders/shader';
 
 export abstract class PostEffect {
@@ -14,12 +15,15 @@ export abstract class PostEffect {
     this.output = output !== undefined ? output : new Framebuffer(gl);
   }
 
-  abstract apply(gl: WebGL2RenderingContext, input: Framebuffer): Framebuffer | null;
+  abstract apply(gl: WebGL2RenderingContext, input: Framebuffer, time: Milliseconds): Framebuffer | null;
 
-  protected render(gl: WebGL2RenderingContext, input: Framebuffer) {
+  protected render(gl: WebGL2RenderingContext, input: Framebuffer, time: Milliseconds) {
+    gl.activeTexture(GL_TEXTURE0);
     gl.bindTexture(GL_TEXTURE_2D, input.texture);
+    gl.uniform1i(this.shader['u_buffer'], 0);
     gl.bindFramebuffer(GL_FRAMEBUFFER, this.output?.buffer ?? null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.uniform1f(this.shader['u_time'], time / 1000);
     gl.disable(GL_DEPTH_TEST);
     gl.disable(GL_CULL_FACE);
     gl.drawArrays(GL_TRIANGLES, 0, 3);

@@ -1,7 +1,18 @@
-import * as glConstants from './gl-constants';
 import { RgbColor } from '../math/color';
 import { Random } from '../math/random';
 import { Size } from '../types';
+import {
+  GL_CLAMP_TO_EDGE,
+  GL_LINEAR,
+  GL_RGBA,
+  GL_TEXTURE0,
+  GL_TEXTURE_2D,
+  GL_TEXTURE_MAG_FILTER,
+  GL_TEXTURE_MIN_FILTER,
+  GL_TEXTURE_WRAP_S,
+  GL_TEXTURE_WRAP_T,
+  GL_UNSIGNED_BYTE,
+} from './gl-constants';
 import { getWhiteNoise } from './noise';
 
 export function generateTextureFromData(
@@ -10,22 +21,13 @@ export function generateTextureFromData(
   size: [width: number, height: number],
 ) {
   const texture = gl.createTexture()!;
-  gl.bindTexture(glConstants.GL_TEXTURE_2D, texture);
-  gl.texParameteri(glConstants.GL_TEXTURE_2D, glConstants.GL_TEXTURE_MAG_FILTER, glConstants.GL_LINEAR);
-  gl.texParameteri(glConstants.GL_TEXTURE_2D, glConstants.GL_TEXTURE_MIN_FILTER, glConstants.GL_LINEAR);
-  gl.texParameteri(glConstants.GL_TEXTURE_2D, glConstants.GL_TEXTURE_WRAP_S, glConstants.GL_CLAMP_TO_EDGE);
-  gl.texParameteri(glConstants.GL_TEXTURE_2D, glConstants.GL_TEXTURE_WRAP_T, glConstants.GL_CLAMP_TO_EDGE);
-  gl.texImage2D(
-    glConstants.GL_TEXTURE_2D,
-    0,
-    glConstants.GL_RGBA,
-    size[0],
-    size[1],
-    0,
-    glConstants.GL_RGBA,
-    glConstants.GL_UNSIGNED_BYTE,
-    data,
-  );
+  gl.activeTexture(GL_TEXTURE0);
+  gl.bindTexture(GL_TEXTURE_2D, texture);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
   return texture;
 }
 

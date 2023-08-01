@@ -19,7 +19,7 @@ export class BaseScene implements Scene {
     this.pointer = [0, 0];
     this.sprites = [];
     this.shader = resourceManager.shaders.get('sprite')!;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 1; i++) {
       this.sprites.push(
         new Sprite(
           gl,

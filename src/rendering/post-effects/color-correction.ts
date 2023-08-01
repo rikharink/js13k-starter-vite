@@ -1,6 +1,8 @@
 import { ResourceManager } from '../../managers/resource-manager';
+import { NormalizedRgbaColor } from '../../math/color';
 import { Matrix4x4, create, multiply, transpose } from '../../math/matrix4x4';
 import { Vector4, add } from '../../math/vector4';
+import { Seconds } from '../../types';
 import { Framebuffer } from '../framebuffer';
 import { PostEffect } from './post-effect';
 
@@ -9,13 +11,14 @@ export class ColorCorrection extends PostEffect {
   public contrast: number = 0;
   public exposure: number = 0;
   public saturation: number = 0;
+  public colorFilter: NormalizedRgbaColor = [1, 1, 1, 1];
 
   public constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
     super('color correction', gl, resourceManager.shaders.get('post')!);
     super.isEnabled = true;
   }
 
-  public apply(gl: WebGL2RenderingContext, input: Framebuffer): Framebuffer | null {
+  public apply(gl: WebGL2RenderingContext, input: Framebuffer, time: Seconds): Framebuffer | null {
     if (!this.isEnabled) return input;
     this.shader.enable(gl);
 
@@ -53,7 +56,8 @@ export class ColorCorrection extends PostEffect {
 
     gl.uniformMatrix4fv(this.shader['u_colorMatrix'], false, colorMatrix);
     gl.uniform4f(this.shader['u_offset'], ...colorOffset);
-    this.render(gl, input);
+    gl.uniform4f(this.shader['u_colorFilter'], ...this.colorFilter);
+    this.render(gl, input, time);
 
     return this.output;
   }

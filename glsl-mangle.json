@@ -9,5 +9,10 @@
   "a_uv": "u",
   "f_color": "c",
   "v_uv": "v",
-  "u_buffer": "f"
+  "u_buffer": "f",
+  "u_noise": "n",
+  "u_time": "s",
+  "u_resolution": "r",
+  "u_bend": "be",
+  "u_colorFilter": "cf"
 }

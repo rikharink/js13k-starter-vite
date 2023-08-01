@@ -67,7 +67,7 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): ResourceManager {
+  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
     const loaderScene = new LoaderScene([0, 0, 0]);
 
     sceneManager.pushScene(loaderScene);
@@ -78,7 +78,6 @@ export class ResourceManagerBuilder {
       progress += 1;
       const progressPercentage = (progress / total) * 100;
       loaderScene.progress = progressPercentage;
-      console.info(`loading progress: ${progressPercentage}%`);
     }
 
     for (const [key, generator] of this.texturesToGenerate) {
@@ -86,21 +85,28 @@ export class ResourceManagerBuilder {
       incrementProgress();
     }
 
-    for (const [key, uri] of this.imagesToLoad) {
-      loadTexture(gl, uri)
-        .then((t) => {
-          this.mgr.textures.set(key, t);
-          incrementProgress();
-        })
-        .catch((e) => console.error(e));
-    }
-
     for (const [key, vert, frag] of this.shadersToLoad) {
       this.mgr.shaders.set(key, initShaderProgram(gl, vert, frag)!);
       incrementProgress();
     }
 
-    sceneManager.popScene();
-    return this.mgr;
+    const promises: Promise<void>[] = [];
+    for (const [key, uri] of this.imagesToLoad) {
+      promises.push(
+        loadTexture(gl, uri)
+          .then((t) => {
+            this.mgr.textures.set(key, t);
+            incrementProgress();
+          })
+          .catch((e) => console.error(e)),
+      );
+    }
+
+    return new Promise((resolve) => {
+      Promise.all(promises).then(() => {
+        sceneManager.popScene();
+        resolve(this.mgr);
+      });
+    });
   }
 }

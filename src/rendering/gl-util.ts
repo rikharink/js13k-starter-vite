@@ -1,3 +1,5 @@
+import { text } from 'stream/consumers';
+import { Vector2 } from '../math/vector2';
 import {
   GL_ACTIVE_ATTRIBUTES,
   GL_ACTIVE_UNIFORMS,
@@ -17,6 +19,8 @@ import {
   GL_UNSIGNED_BYTE,
   GL_CLAMP_TO_EDGE,
   GL_NEAREST,
+  GL_UNIFORM_BLOCK_INDEX,
+  GL_UNIFORM_OFFSET,
 } from './gl-constants';
 import { Shader } from './shaders/shader';
 
@@ -85,7 +89,7 @@ export function setupAttributeBuffer(
   return buffer;
 }
 
-export function createTexture(gl: WebGL2RenderingContext, size: [number, number]): WebGLTexture {
+export function createTexture(gl: WebGL2RenderingContext, size: Vector2): WebGLTexture {
   const texture = gl.createTexture()!;
   gl.bindTexture(GL_TEXTURE_2D, texture);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -93,6 +97,17 @@ export function createTexture(gl: WebGL2RenderingContext, size: [number, number]
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+  return texture;
+}
+
+export function canvasToTexture(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement): WebGLTexture {
+  const texture = gl.createTexture()!;
+  gl.bindTexture(GL_TEXTURE_2D, texture);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
   return texture;
 }
 
@@ -123,4 +138,19 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<We
 
     image.src = url;
   });
+}
+
+export function logAllActiveUniforms(gl: WebGL2RenderingContext, program: WebGLProgram) {
+  const numUniforms = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS);
+  const indices = [...Array(numUniforms).keys()];
+  const blockIndices = gl.getActiveUniforms(program, indices, GL_UNIFORM_BLOCK_INDEX);
+  const offsets = gl.getActiveUniforms(program, indices, GL_UNIFORM_OFFSET);
+  for (let ii = 0; ii < numUniforms; ++ii) {
+    const uniformInfo = gl.getActiveUniform(program, ii)!;
+
+    const { name, type, size } = uniformInfo;
+    const blockIndex = blockIndices[ii];
+    const offset = offsets[ii];
+    console.log(name, size, type, blockIndex, offset);
+  }
 }

@@ -7,6 +7,8 @@ out vec4 f_color;
 
 uniform sampler2D u_atlas;
 uniform vec4 u_blend;
+uniform vec2 u_resolution;
+uniform float u_time;
 
 void main() {
   f_color = texture(u_atlas, v_uv) * u_blend;
