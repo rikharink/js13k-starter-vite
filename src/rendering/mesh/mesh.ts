@@ -31,7 +31,7 @@ export abstract class Mesh implements Renderable {
     gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this.indices, GL_STATIC_DRAW);
     gl.bindBuffer(GL_ARRAY_BUFFER, this.uvBuffer);
     const pos = material['a_position'];
-    const uv = material['a_texcoord'];
+    const uv = material['a_uv'];
     gl.vertexAttribPointer(pos, 2, GL_FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
     gl.vertexAttribPointer(
       uv,

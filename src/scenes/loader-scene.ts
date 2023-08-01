@@ -6,6 +6,7 @@ import { Percentage } from '../types';
 import { Scene } from './scene';
 
 export class LoaderScene implements Scene {
+  public name = "loader";
   public pointer: [x: number, y: number];
   public clearColor: RgbColor;
   public sprites: Sprite[];
@@ -27,10 +28,12 @@ export class LoaderScene implements Scene {
   }
 
   public onPush(): void {
+    console.debug(`pushed scene: ${this.name}`);
     document.getElementById('app')!.appendChild(this.canvas);
   }
 
   public onPop(): void {
+    console.debug(`popped scene: ${this.name}`);
     document.getElementById('app')!.removeChild(this.canvas);
   }
 

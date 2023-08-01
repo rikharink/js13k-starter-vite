@@ -9,7 +9,7 @@ export class Framebuffer {
     this.buffer = gl.createFramebuffer()!;
     gl.bindFramebuffer(GL_FRAMEBUFFER, this.buffer);
     this.texture = createTexture(gl, [gl.drawingBufferWidth, gl.drawingBufferHeight]);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this.texture, 0);
+    gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this.texture, 0);
   }
 
   enable(gl: WebGL2RenderingContext) {

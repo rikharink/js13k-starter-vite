@@ -2,22 +2,14 @@
 
 precision highp float;
 
-in vec2 uv;
+in vec2 v_uv;
 
-uniform sampler2D t;
-uniform vec4 cf;
-uniform bool inv;
-out vec4 c;
+uniform sampler2D u_buffer;
+uniform mat4 u_colorMatrix;
+uniform vec4 u_offset;
 
-vec4 invert(vec4 i) {
-    return vec4(1) - i;
-}
+out vec4 f_color;
 
 void main() {
-    vec4 s = texture(t, uv) * cf;
-    if(inv) {
-        s = invert(s);
-    }
-    s.a = 1.;
-    c = s;
+    f_color = u_colorMatrix * texture(u_buffer, v_uv) + u_offset;
 }

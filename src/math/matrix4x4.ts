@@ -1,3 +1,4 @@
+import { Radian } from '../types';
 import { EPSILON } from './const';
 import { Quaternion } from './quaternion';
 import { normalize, Vector3 } from './vector3';
@@ -18,7 +19,7 @@ export type Matrix4x4 = [
   m30: number,
   n31: number,
   m32: number,
-  m33: number
+  m33: number,
 ];
 
 export function create(): Matrix4x4 {
@@ -47,7 +48,7 @@ export function set(
   m30: number,
   m31: number,
   m32: number,
-  m33: number
+  m33: number,
 ): Matrix4x4 {
   out[0] = m00;
   out[1] = m01;
@@ -275,7 +276,7 @@ export function ortho(
   bottom: number,
   left: number,
   near: number,
-  far: number
+  far: number,
 ): Matrix4x4 {
   const lr = 1 / (left - right);
   const bt = 1 / (bottom - top);
@@ -674,5 +675,48 @@ export function scale(out: Matrix4x4, m: Matrix4x4, v: Vector3): Matrix4x4 {
     out[15] = m[15];
   }
 
+  return out;
+}
+
+export function rotationZ(angle: Radian): Matrix4x4 {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const out = create();
+  out[0] = c;
+  out[1] = s;
+  out[2] = 0;
+  out[3] = 0;
+  out[4] = -s;
+  out[5] = c;
+  out[6] = 0;
+  out[7] = 0;
+  out[8] = 0;
+  out[9] = 0;
+  out[10] = 1;
+  out[11] = 0;
+  out[12] = 0;
+  out[13] = 0;
+  out[14] = 0;
+  out[15] = 1;
+  return out;
+}
+
+export function translation(out: Matrix4x4, t: Vector3): Matrix4x4 {
+  out[0] = 1;
+  out[1] = 0;
+  out[2] = 0;
+  out[3] = 0;
+  out[4] = 0;
+  out[5] = 1;
+  out[6] = 0;
+  out[7] = 0;
+  out[8] = 0;
+  out[9] = 0;
+  out[10] = 1;
+  out[11] = 0;
+  out[12] = t[0];
+  out[13] = t[1];
+  out[14] = t[2];
+  out[15] = 1;
   return out;
 }

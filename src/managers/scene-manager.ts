@@ -4,7 +4,7 @@ export class SceneManager {
   private sceneStack: Scene[] = [];
 
   public get currentScene(): Scene {
-    if (this.sceneStack.length == 0) {
+    if (import.meta.env.DEV && this.sceneStack.length == 0) {
       throw Error("sceneStack shouldn't be empty");
     }
     const scene = this.sceneStack[this.sceneStack.length - 1];

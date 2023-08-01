@@ -8,6 +8,7 @@ import { State } from '../state';
 import { Scene } from './scene';
 
 export class BaseScene implements Scene {
+  public name = 'base scene';
   public pointer: [x: number, y: number];
   public clearColor: NormalizedRgbColor;
   public sprites: Sprite[];
@@ -31,10 +32,13 @@ export class BaseScene implements Scene {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  public onPush(): void {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  public onPop(): void {}
+  public onPush(): void {
+    console.debug(`pushed scene: ${this.name}`);
+  }
+
+  public onPop(): void {
+    console.debug(`popped scene: ${this.name}`);
+  }
 
   public tick(_gl: WebGL2RenderingContext): void {}
 

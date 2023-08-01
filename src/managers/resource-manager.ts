@@ -3,10 +3,11 @@ import { PostEffect } from '../rendering/post-effects/post-effect';
 import { Shader } from '../rendering/shaders/shader';
 import { LoaderScene } from '../scenes/loader-scene';
 import { SceneManager } from './scene-manager';
+import { rng } from '../game';
 
 export class ResourceManager {
   public shaders: Map<string, Shader> = new Map();
-  public images: Map<string, WebGLTexture> = new Map();
+  public textures: Map<string, WebGLTexture> = new Map();
   private postEffects: Map<string, [number, PostEffect]> = new Map();
   private postEffectIndex: number = 0;
 
@@ -47,13 +48,22 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public addImage(key: string, uri: string): ResourceManagerBuilder {
+  public addTexture(key: string, uri: string): ResourceManagerBuilder {
     this.imagesToLoad.push([key, uri]);
     return this;
   }
 
   public addProceduralTexture(key: string, generator: TextureGenerator): ResourceManagerBuilder {
     this.texturesToGenerate.push([key, generator]);
+    return this;
+  }
+
+  public addSvgTexture(key: string, svgSource: string): ResourceManagerBuilder {
+    const svgSeed = Math.ceil(rng() * 9999999999);
+    const svg64 = btoa(svgSource.replace('seed="1"', `seed="${svgSeed}"`));
+    const start = 'data:image/svg+xml;base64,';
+    const src = start + svg64;
+    this.imagesToLoad.push([key, src]);
     return this;
   }
 
@@ -72,15 +82,17 @@ export class ResourceManagerBuilder {
     }
 
     for (const [key, generator] of this.texturesToGenerate) {
-      this.mgr.images.set(key, generator());
+      this.mgr.textures.set(key, generator());
       incrementProgress();
     }
 
     for (const [key, uri] of this.imagesToLoad) {
-      loadTexture(gl, uri).then((t) => {
-        this.mgr.images.set(key, t);
-        incrementProgress();
-      });
+      loadTexture(gl, uri)
+        .then((t) => {
+          this.mgr.textures.set(key, t);
+          incrementProgress();
+        })
+        .catch((e) => console.error(e));
     }
 
     for (const [key, vert, frag] of this.shadersToLoad) {

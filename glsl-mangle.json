@@ -1,0 +1,13 @@
+{
+  "u_mvpMatrix": "m",
+  "u_textureMatrix": "t",
+  "u_blend": "b",
+  "u_atlas": "a",
+  "u_colorMatrix": "m",
+  "u_offset": "o",
+  "a_position": "p",
+  "a_uv": "u",
+  "f_color": "c",
+  "v_uv": "v",
+  "u_buffer": "f"
+}

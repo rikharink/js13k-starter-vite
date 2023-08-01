@@ -3,6 +3,7 @@ import { Sprite } from '../rendering/sprite';
 import { State } from '../state';
 
 export interface Scene {
+  name: string;
   pointer: [x: number, y: number];
   clearColor: NormalizedRgbColor;
   sprites: Sprite[];

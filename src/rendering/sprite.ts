@@ -1,4 +1,10 @@
-import { create, multiply, ortho, scale } from '../math/matrix4x4';
+import {
+  create,
+  ortho,
+  scale,
+  translate,
+  translation,
+} from '../math/matrix4x4';
 import { Vector2 } from '../math/vector2';
 import { Mesh } from './mesh/mesh';
 import { Quad } from './mesh/quad';
@@ -39,16 +45,14 @@ export class Sprite implements Renderable {
   }
 
   render(gl: WebGL2RenderingContext): void {
-    const projectionMatrix = ortho(create(), 0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
-    const modelMatrix = create();
-    const viewMatrix = create();
-    scale(modelMatrix, modelMatrix, [...this.size, 1]);
+    const matrix = ortho(create(), 0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
+    translate(matrix, matrix, [...this.position, 1]);
+    scale(matrix, matrix, [...this.size, 1]);
+    gl.uniformMatrix4fv(this.shader['u_mvpMatrix'], false, matrix);
 
-    const mvpMatrix = create();
-    multiply(mvpMatrix, projectionMatrix, viewMatrix);
-    multiply(mvpMatrix, mvpMatrix, modelMatrix);
-
-    gl.uniformMatrix4fv(this.shader['u_mvpMatrix'], false, mvpMatrix);
+    const texMatrix = translation(create(), [0, 0, 0]);
+    scale(texMatrix, texMatrix, [this.size[0], this.size[1], 1]);
+    gl.uniformMatrix4fv(this.shader['u_textureMatrix'], false, texMatrix);
 
     gl.uniform4fv(this.shader['u_blend'], this.color);
     gl.uniform1i(this.shader['u_atlas'], this.textureUnit);

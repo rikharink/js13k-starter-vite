@@ -75,7 +75,7 @@ export function setupAttributeBuffer(
 ): WebGLBuffer {
   const buffer = gl.createBuffer()!;
   const attributeLocation = shader[attribute];
-  if (attributeLocation === undefined) {
+  if (import.meta.env.DEV && attributeLocation === undefined) {
     throw Error(`Couldn't find attribute ${attribute} in shader`);
   }
   gl.bindBuffer(target, buffer);
@@ -84,7 +84,6 @@ export function setupAttributeBuffer(
   gl.enableVertexAttribArray(attributeLocation);
   return buffer;
 }
-
 
 export function createTexture(gl: WebGL2RenderingContext, size: [number, number]): WebGLTexture {
   const texture = gl.createTexture()!;
@@ -112,6 +111,7 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<We
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
+      document.body.appendChild(image);
       gl.bindTexture(GL_TEXTURE_2D, texture);
       gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
       gl.generateMipmap(GL_TEXTURE_2D);

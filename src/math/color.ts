@@ -134,7 +134,7 @@ export function rgbaString(color: RgbColor, alpha: number): string {
   return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
 }
 
-export function hexToRgb(hex: string): RgbColor {
+export function hexToRgb(hex: string): RgbColor | undefined {
   let c: string[];
   if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
     c = hex.substring(1).split('');
@@ -144,9 +144,12 @@ export function hexToRgb(hex: string): RgbColor {
     const c2 = Number('0x' + c.join(''));
     return [(c2 >> 16) & 255, (c2 >> 8) & 255, c2 & 255];
   }
-  throw new Error('Bad Hex');
+  if (import.meta.env.DEV) {
+    throw new Error('Bad Hex');
+  }
+  return undefined;
 }
 
 export function hexToNormalizedRgb(hex: string): NormalizedRgbColor {
-  return normalizeRgb(hexToRgb(hex));
+  return normalizeRgb(hexToRgb(hex)!);
 }
