@@ -1,4 +1,4 @@
-import { Milliseconds, Seconds } from '../../types';
+import { Milliseconds } from '../../types';
 import { Framebuffer } from '../framebuffer';
 import { GL_CULL_FACE, GL_DEPTH_TEST, GL_FRAMEBUFFER, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from '../gl-constants';
 import { Shader } from '../shaders/shader';

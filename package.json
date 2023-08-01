@@ -10,7 +10,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "prod": "pnpm run build && basic-http-server ./dist"
+    "serve": "basic-http-server ./dist"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.2",

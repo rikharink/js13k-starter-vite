@@ -1,3 +1,4 @@
+import { canvas } from '../../game';
 import { ResourceManager } from '../../managers/resource-manager';
 import { Vector2 } from '../../math/vector2';
 import { Settings } from '../../settings';
@@ -19,7 +20,11 @@ export class Crt extends PostEffect {
   }
 
   apply(gl: WebGL2RenderingContext, input: Framebuffer, time: Milliseconds): Framebuffer | null {
-    if (!this.isEnabled) return input;
+    if (!this.isEnabled) {
+      canvas.style.borderRadius = '0px';
+      return input;
+    }
+    canvas.style.borderRadius = '50px';
     this.shader.enable(gl);
     gl.activeTexture(GL_TEXTURE1);
     gl.bindTexture(GL_TEXTURE_2D, this.noise);

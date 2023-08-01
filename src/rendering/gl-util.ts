@@ -1,4 +1,3 @@
-import { text } from 'stream/consumers';
 import { Vector2 } from '../math/vector2';
 import {
   GL_ACTIVE_ATTRIBUTES,

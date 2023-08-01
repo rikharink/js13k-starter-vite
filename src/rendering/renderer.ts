@@ -13,7 +13,7 @@ import { Settings } from '../settings';
 import { Scene } from '../scenes/scene';
 import { Framebuffer } from './framebuffer';
 import { ResourceManager } from '../managers/resource-manager';
-import { Milliseconds, Seconds } from '../types';
+import { Milliseconds } from '../types';
 import { hud } from '../game';
 import { Shader } from './shaders/shader';
 import { create } from '../math/matrix4x4';

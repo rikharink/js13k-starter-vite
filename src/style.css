@@ -14,8 +14,19 @@ body {
   align-items: center;
 }
 
-#h {
+svg {
   position: absolute;
+  max-width: 100%;
+  height: auto;
+}
+
+#app canvas {
+  border-radius: 50px;
+}
+
+#g {
+  transition: border-radius 50ms linear;
+  z-index: 1;
 }
 
 /* #app canvas {

@@ -73,13 +73,13 @@ new ResourceManagerBuilder()
     if (import.meta.env.DEV) {
       gui.add(Settings, 'fixedDeltaTime');
       gui.addColor(sceneManager.currentScene, 'clearColor');
-      gui.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('color correction enabled');
+      gui.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
+      gui.add(resourceManager.getPostEffect('crt'), 'isEnabled').name('crt enabled');
       gui.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
       gui.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
       gui.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
       gui.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
       gui.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
-      gui.add(resourceManager.getPostEffect('crt'), 'isEnabled').name('crt enabled');
       stats = new s.default();
       stats!.showPanel(0);
       document.body.appendChild(stats!.dom);
