@@ -8,7 +8,6 @@ uniform sampler2D u_buffer;
 uniform mat4 u_colorMatrix;
 uniform vec4 u_colorFilter;
 uniform vec4 u_offset;
-uniform vec2 u_resolution;
 uniform vec2 u_time;
 
 out vec4 f_color;

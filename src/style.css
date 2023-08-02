@@ -20,15 +20,7 @@ svg {
   height: auto;
 }
 
-#app canvas {
-  border-radius: 50px;
-}
-
 #g {
   transition: border-radius 50ms linear;
   z-index: 1;
 }
-
-/* #app canvas {
-  cursor: none;
-} */

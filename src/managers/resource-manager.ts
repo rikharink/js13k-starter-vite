@@ -67,8 +67,8 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
-    const loaderScene = new LoaderScene([0, 0, 0]);
+  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): ResourceManager {
+    const loaderScene = new LoaderScene();
 
     sceneManager.pushScene(loaderScene);
     const total = this.shadersToLoad.length + this.imagesToLoad.length + this.texturesToGenerate.length;
@@ -90,23 +90,12 @@ export class ResourceManagerBuilder {
       incrementProgress();
     }
 
-    const promises: Promise<void>[] = [];
     for (const [key, uri] of this.imagesToLoad) {
-      promises.push(
-        loadTexture(gl, uri)
-          .then((t) => {
-            this.mgr.textures.set(key, t);
-            incrementProgress();
-          })
-          .catch((e) => console.error(e)),
-      );
+      this.mgr.textures.set(key, loadTexture(gl, uri));
+      incrementProgress();
     }
 
-    return new Promise((resolve) => {
-      Promise.all(promises).then(() => {
-        sceneManager.popScene();
-        resolve(this.mgr);
-      });
-    });
+    sceneManager.popScene();
+    return this.mgr;
   }
 }

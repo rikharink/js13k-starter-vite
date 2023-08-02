@@ -12,7 +12,7 @@
   "u_buffer": "f",
   "u_noise": "n",
   "u_time": "s",
-  "u_resolution": "r",
   "u_bend": "be",
-  "u_colorFilter": "cf"
+  "u_colorFilter": "cf",
+  "u_paused": "pa"
 }

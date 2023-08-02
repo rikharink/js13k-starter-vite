@@ -2,8 +2,8 @@ import { RgbColor } from '../math/color';
 import { Random } from '../math/random';
 import { Size } from '../types';
 import {
-  GL_CLAMP_TO_EDGE,
   GL_LINEAR,
+  GL_REPEAT,
   GL_RGBA,
   GL_TEXTURE0,
   GL_TEXTURE_2D,
@@ -25,8 +25,8 @@ export function generateTextureFromData(
   gl.bindTexture(GL_TEXTURE_2D, texture);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
   return texture;
 }

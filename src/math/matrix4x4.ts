@@ -720,3 +720,5 @@ export function translation(out: Matrix4x4, t: Vector3): Matrix4x4 {
   out[15] = 1;
   return out;
 }
+
+export const identityMatrix = create();
