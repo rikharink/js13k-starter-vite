@@ -20,6 +20,8 @@ import {
   GL_NEAREST,
   GL_UNIFORM_BLOCK_INDEX,
   GL_UNIFORM_OFFSET,
+  GL_ARRAY_BUFFER,
+  GL_ELEMENT_ARRAY_BUFFER,
 } from './gl-constants';
 import { Shader } from './shaders/shader';
 
@@ -150,4 +152,24 @@ export function logAllActiveUniforms(gl: WebGL2RenderingContext, program: WebGLP
     const offset = offsets[ii];
     console.log(name, size, type, blockIndex, offset);
   }
+}
+
+export function createArrayBuffer(gl: WebGL2RenderingContext, data: Float32Array, isStatic = true): WebGLBuffer {
+  const buffer = gl.createBuffer()!;
+  gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
+  gl.bufferData(GL_ARRAY_BUFFER, data, isStatic ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+
+  return buffer;
+}
+
+export function createIndexBuffer(
+  gl: WebGL2RenderingContext,
+  data: Uint8Array | Uint16Array | Uint32Array,
+  isStatic = true,
+): WebGLBuffer {
+  const buffer = gl.createBuffer()!;
+  gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+  gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, data, isStatic ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+
+  return buffer;
 }

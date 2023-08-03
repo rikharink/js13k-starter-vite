@@ -1,9 +1,10 @@
 import './style.css';
-import spriteVert from './rendering/shaders/default.vert';
-import spriteFrag from './rendering/shaders/default.frag';
+import spriteVert from './rendering/shaders/sprite.vert';
+import spriteFrag from './rendering/shaders/sprite.frag';
 import postVert from './rendering/shaders/post.vert';
 import postFrag from './rendering/shaders/post.frag';
 import vhsFrag from './rendering/shaders/vhs.frag';
+
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
 import { MainRenderer } from './rendering/main-renderer';
@@ -17,14 +18,16 @@ import { ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import { Passthrough } from './rendering/post-effects/passthrough';
 import { Vhs } from './rendering/post-effects/vhs';
-import { generateColorNoiseTexture } from './rendering/textures';
+import { generateColorNoiseTexture, generateSolidTexture } from './rendering/textures';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
 <canvas id=g width=${Settings.resolution[0]} height=${Settings.resolution[1]}></canvas>
 `;
 export const canvas = document.getElementById('g') as HTMLCanvasElement;
-const gl = canvas.getContext('webgl2')!;
+const gl = canvas.getContext('webgl2', {
+  alpha: false,
+})!;
 
 const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
@@ -41,6 +44,7 @@ const resourceManager = new ResourceManagerBuilder()
   .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
   .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
+  .addProceduralTexture('atlas', () => generateSolidTexture(gl, [255, 255, 255]))
   .build(gl, sceneManager);
 
 resourceManager
@@ -50,11 +54,12 @@ resourceManager
 
 const renderer = new MainRenderer(gl, resourceManager);
 
-sceneManager.pushScene(new BaseScene());
-
+sceneManager.pushScene(new BaseScene(resourceManager));
+let stats: Stats | undefined = undefined;
 if (import.meta.env.DEV) {
   const lil = await import('lil-gui');
   const gui = new lil.GUI();
+  const s = await import('stats.js');
 
   gui.add(Settings, 'fixedDeltaTime');
   gui.addColor(Settings, 'clearColor');
@@ -66,6 +71,10 @@ if (import.meta.env.DEV) {
   gui.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
   gui.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
   gui.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
+
+  stats = new s.default();
+  stats.showPanel(0);
+  document.body.appendChild(stats.dom);
 }
 
 let audioSystem: AudioSystem | undefined = undefined;
@@ -81,6 +90,7 @@ let _then = 0;
 let _accumulator = 0;
 
 function gameloop(now: number): void {
+  stats?.begin();
   requestAnimationFrame(gameloop);
   if (isPaused) return;
 
@@ -99,12 +109,16 @@ function gameloop(now: number): void {
   }
 
   //VARIABLE STEP
+
+  renderer.begin(gl);
   renderer.render(gl, sceneManager.currentScene, _accumulator / Settings.fixedDeltaTime, now);
+  renderer.end(gl);
 
   keyboardManager.tick();
   gamepadManager.tick();
   pointerManager.tick();
   _then = now;
+  stats?.end();
 }
 
 function pause(): void {

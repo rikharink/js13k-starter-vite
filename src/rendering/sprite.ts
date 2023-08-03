@@ -1,11 +1,11 @@
-import { RgbColor } from '../math/color';
+import { NormalizedRgbColor } from '../math/color';
 import { Vector2 } from '../math/vector2';
-import { Vector3 } from '../math/vector3';
 
 export interface Sprite {
   name: string;
-  position: Vector3;
-  uv: Vector2;
-  color: RgbColor;
+  position: Vector2;
+  size: Vector2;
+  color: NormalizedRgbColor;
   texture: WebGLTexture;
+  direction: Vector2 | null;
 }

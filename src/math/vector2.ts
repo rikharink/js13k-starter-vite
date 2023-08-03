@@ -1,3 +1,6 @@
+import { Radian } from '../types';
+import { TAU } from './const';
+import { Random } from './random';
 import { nearlyEqual as ne } from './util';
 
 export type Vector2 = [x: number, y: number];
@@ -113,4 +116,25 @@ export function perpendicular(out: Vector2, dxdy: Vector2, clockwise = true): Ve
   out[1] = dxdy[0];
   clockwise ? (out[1] = -out[1]) : (out[0] = -out[0]);
   return normalize(out, out);
+}
+
+export function reflect(out: Vector2, d: Vector2, r: Vector2): Vector2 {
+  const k = dot(d, r) / dot(r, r);
+  const twokn = scale([0, 0], r, 2 * k);
+  out[0] = d[0];
+  out[1] = d[1];
+  scale(out, out, -1);
+  add(out, out, twokn);
+  return out;
+}
+
+export function randomPointOnUnitCircle(out: Vector2, rng: Random): Vector2 {
+  const angle = TAU * rng();
+  out[0] = Math.cos(angle);
+  out[1] = Math.sin(angle);
+  return out;
+}
+
+export function angle(a: Vector2, b: Vector2): Radian {
+  return Math.acos(dot(a, b) / (length(a) * length(b)));
 }

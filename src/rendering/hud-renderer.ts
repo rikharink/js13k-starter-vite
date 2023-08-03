@@ -5,7 +5,15 @@ import { Vector2 } from '../math/vector2';
 import { canvasToTexture } from './gl-util';
 import { Settings } from '../settings';
 import { Milliseconds, Seconds } from '../types';
-import { GL_BLEND, GL_ONE, GL_SRC_ALPHA, GL_TEXTURE_2D, GL_TRIANGLES, GL_UNPACK_FLIP_Y_WEBGL } from './gl-constants';
+import {
+  GL_BLEND,
+  GL_ONE,
+  GL_ONE_MINUS_SRC_ALPHA,
+  GL_SRC_ALPHA,
+  GL_TEXTURE3,
+  GL_TEXTURE_2D,
+  GL_TRIANGLES,
+} from './gl-constants';
 import { Renderer } from './renderer';
 import { Shader } from './shaders/shader';
 
@@ -28,9 +36,8 @@ export class HudRenderer implements Renderer {
   }
 
   begin(gl: WebGL2RenderingContext): void {
-    gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
-    gl.blendFunc(GL_SRC_ALPHA, GL_ONE);
     gl.enable(GL_BLEND);
+    gl.blendFunc(GL_SRC_ALPHA, GL_ONE);
     this.shader.enable(gl);
     gl.uniformMatrix4fv(this.shader['u_colorMatrix'], false, identityMatrix);
     gl.uniform4f(this.shader['u_offset'], 0, 0, 0, 1);
@@ -46,14 +53,16 @@ export class HudRenderer implements Renderer {
       Settings.resolution[1] - 42 - 30,
     ]);
 
+
+    gl.uniform1i(this.shader['u_buffer'], 3);
+    gl.activeTexture(GL_TEXTURE3);
     const hudTexture = this.getTexture(gl);
     gl.bindTexture(GL_TEXTURE_2D, hudTexture);
     gl.drawArrays(GL_TRIANGLES, 0, 3);
   }
 
   end(gl: WebGL2RenderingContext): void {
-    gl.disable(GL_BLEND);
-    gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, false);
+    gl.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
   private getTexture(gl: WebGL2RenderingContext): WebGLTexture {

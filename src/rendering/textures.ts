@@ -11,6 +11,8 @@ import {
   GL_TEXTURE_MIN_FILTER,
   GL_TEXTURE_WRAP_S,
   GL_TEXTURE_WRAP_T,
+  GL_UNPACK_FLIP_Y_WEBGL,
+  GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
   GL_UNSIGNED_BYTE,
 } from './gl-constants';
 import { getWhiteNoise } from './noise';
@@ -20,6 +22,8 @@ export function generateTextureFromData(
   data: Uint8Array,
   size: [width: number, height: number],
 ) {
+  gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, false);
+  gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
   const texture = gl.createTexture()!;
   gl.activeTexture(GL_TEXTURE0);
   gl.bindTexture(GL_TEXTURE_2D, texture);

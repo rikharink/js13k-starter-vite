@@ -1,6 +1,6 @@
 import { Milliseconds } from '../../types';
 import { Framebuffer } from '../framebuffer';
-import { GL_CULL_FACE, GL_DEPTH_TEST, GL_FRAMEBUFFER, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from '../gl-constants';
+import { GL_FRAMEBUFFER, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from '../gl-constants';
 import { Shader } from '../shaders/shader';
 
 export abstract class PostEffect {
@@ -24,8 +24,6 @@ export abstract class PostEffect {
     gl.bindFramebuffer(GL_FRAMEBUFFER, this.output?.buffer ?? null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.uniform1f(this.shader['u_time'], time / 1000);
-    gl.disable(GL_DEPTH_TEST);
-    gl.disable(GL_CULL_FACE);
     gl.drawArrays(GL_TRIANGLES, 0, 3);
     return this.output;
   }
