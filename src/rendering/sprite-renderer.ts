@@ -17,7 +17,7 @@ import { Renderer } from './renderer';
 import { Shader } from './shaders/shader';
 import { Sprite } from './sprite';
 
-const MAX_SPRITES_PER_BATCH = 5_000;
+const MAX_SPRITES_PER_BATCH = 1_000;
 const FLOATS_PER_VERTEX = 7;
 const FLOATS_PER_SPRITE = 4 * FLOATS_PER_VERTEX;
 const INDICES_PER_SPRITE = 6;
@@ -93,43 +93,48 @@ export class SpriteRenderer implements Renderer {
     if (this.currentTexture !== sprite.texture) {
       this.end(gl);
       gl.activeTexture(GL_TEXTURE2);
-      gl.bindTexture(GL_TEXTURE_2D, sprite.texture);
+      gl.bindTexture(GL_TEXTURE_2D, sprite.texture.texture);
       this.currentTexture = sprite.texture;
     }
     let i = this.instanceCount * FLOATS_PER_SPRITE;
+    
+    const u0 = sprite.sourceRect.position[0] / sprite.texture.size[0];
+    const u1 = (sprite.sourceRect.position[0] + sprite.sourceRect.size[0]) / sprite.texture.size[0];
+    const v0 = 1 - (sprite.sourceRect.position[1] + sprite.sourceRect.size[1]) / sprite.texture.size[1];
+    const v1 = 1 - sprite.sourceRect.position[1] / sprite.texture.size[1];
 
     // top left
-    this.data[0 + i] = sprite.position[0]; // x
-    this.data[1 + i] = sprite.position[1]; // y
-    this.data[2 + i] = 0; // u
-    this.data[3 + i] = 1; // v
+    this.data[0 + i] = sprite.drawRect.position[0]; // x
+    this.data[1 + i] = sprite.drawRect.position[1]; // y
+    this.data[2 + i] = u0; // u
+    this.data[3 + i] = v1; // v
     this.data[4 + i] = sprite.color[0]; // r
     this.data[5 + i] = sprite.color[1]; // g
     this.data[6 + i] = sprite.color[2]; // b
 
     // top right
-    this.data[7 + i] = sprite.position[0] + sprite.size[0]; // x
-    this.data[8 + i] = sprite.position[1]; // y
-    this.data[9 + i] = 1; // u
-    this.data[10 + i] = 1; // v
+    this.data[7 + i] = sprite.drawRect.position[0] + sprite.drawRect.size[0]; // x
+    this.data[8 + i] = sprite.drawRect.position[1]; // y
+    this.data[9 + i] = u1; // u
+    this.data[10 + i] = v1; // v
     this.data[11 + i] = sprite.color[0]; // r
     this.data[12 + i] = sprite.color[1]; // g
     this.data[13 + i] = sprite.color[2]; // b
 
     // bottom right
-    this.data[14 + i] = sprite.position[0] + sprite.size[0]; // x
-    this.data[15 + i] = sprite.position[1] + sprite.size[1]; // y
-    this.data[16 + i] = 1; // u
-    this.data[17 + i] = 0; // v
+    this.data[14 + i] = sprite.drawRect.position[0] + sprite.drawRect.size[0]; // x
+    this.data[15 + i] = sprite.drawRect.position[1] + sprite.drawRect.size[1]; // y
+    this.data[16 + i] = u1; // u
+    this.data[17 + i] = v0; // v
     this.data[18 + i] = sprite.color[0]; // r
     this.data[19 + i] = sprite.color[1]; // g
     this.data[20 + i] = sprite.color[2]; // b
 
     // bottom left
-    this.data[21 + i] = sprite.position[0]; // x
-    this.data[22 + i] = sprite.position[1] + sprite.size[1]; // y
-    this.data[23 + i] = 0; // u
-    this.data[24 + i] = 0; // v
+    this.data[21 + i] = sprite.drawRect.position[0]; // x
+    this.data[22 + i] = sprite.drawRect.position[1] + sprite.drawRect.size[1]; // y
+    this.data[23 + i] = u0; // u
+    this.data[24 + i] = v0; // v
     this.data[25 + i] = sprite.color[0]; // r
     this.data[26 + i] = sprite.color[1]; // g
     this.data[27 + i] = sprite.color[2]; // b

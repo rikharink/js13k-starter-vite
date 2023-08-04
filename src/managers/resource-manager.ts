@@ -4,10 +4,12 @@ import { Shader } from '../rendering/shaders/shader';
 import { LoaderScene } from '../scenes/loader-scene';
 import { SceneManager } from './scene-manager';
 import { rng } from '../game';
+import { Texture } from '../textures/texture';
+import { Atlas } from '../textures/atlas';
 
 export class ResourceManager {
   public shaders: Map<string, Shader> = new Map();
-  public textures: Map<string, WebGLTexture> = new Map();
+  public textures: Map<string, Texture> = new Map();
   private postEffects: Map<string, [number, PostEffect]> = new Map();
   private postEffectIndex: number = 0;
 
@@ -34,13 +36,15 @@ export class ResourceManager {
 
 type ShaderToLoad = [key: string, vert: string, frag: string];
 type ImageToLoad = [key: string, uri: string];
+type AtlasToLoad = [uri: string, atlas: Atlas];
 type TextureToGenerate = [key: string, generator: TextureGenerator];
-type TextureGenerator = () => WebGLTexture;
+type TextureGenerator = () => Texture;
 
 export class ResourceManagerBuilder {
   private mgr = new ResourceManager();
   private shadersToLoad: ShaderToLoad[] = [];
   private imagesToLoad: ImageToLoad[] = [];
+  private atlasToLoad: AtlasToLoad[] = [];
   private texturesToGenerate: TextureToGenerate[] = [];
 
   public addShader(key: string, vert: string, frag: string): ResourceManagerBuilder {
@@ -50,6 +54,11 @@ export class ResourceManagerBuilder {
 
   public addTexture(key: string, uri: string): ResourceManagerBuilder {
     this.imagesToLoad.push([key, uri]);
+    return this;
+  }
+
+  public addTextureAtlas(uri: string, atlas: Atlas): ResourceManagerBuilder {
+    this.atlasToLoad.push([uri, atlas]);
     return this;
   }
 
@@ -67,17 +76,36 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): ResourceManager {
+  public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
     const loaderScene = new LoaderScene();
 
     sceneManager.pushScene(loaderScene);
-    const total = this.shadersToLoad.length + this.imagesToLoad.length + this.texturesToGenerate.length;
+    const total =
+      this.shadersToLoad.length + this.imagesToLoad.length + this.texturesToGenerate.length + this.atlasToLoad.length;
     let progress = 0;
 
     function incrementProgress() {
       progress += 1;
       const progressPercentage = (progress / total) * 100;
       loaderScene.progress = progressPercentage;
+    }
+
+    const promises: Promise<any>[] = [];
+
+    for (const [uri, atlas] of this.atlasToLoad) {
+      promises.push(
+        loadTexture(gl, uri).then((texture) => {
+          for (const t of atlas.textures) {
+            const atlasTexture: Texture = { ...texture };
+            atlasTexture.sourceRect = {
+              position: t.position,
+              size: t.size,
+            };
+            this.mgr.textures.set(t.name, atlasTexture);
+          }
+          incrementProgress();
+        }),
+      );
     }
 
     for (const [key, generator] of this.texturesToGenerate) {
@@ -91,11 +119,22 @@ export class ResourceManagerBuilder {
     }
 
     for (const [key, uri] of this.imagesToLoad) {
-      this.mgr.textures.set(key, loadTexture(gl, uri));
-      incrementProgress();
+      promises.push(
+        loadTexture(gl, uri).then((texture) => {
+          this.mgr.textures.set(key, texture);
+          incrementProgress();
+        }),
+      );
     }
 
-    sceneManager.popScene();
-    return this.mgr;
+    return new Promise((resolve, reject) => {
+      const res = Promise.all(promises);
+      res
+        .then(() => {
+          sceneManager.popScene();
+          resolve(this.mgr);
+        })
+        .catch((e) => reject(e));
+    });
   }
 }

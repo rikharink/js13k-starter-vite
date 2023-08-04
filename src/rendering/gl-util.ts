@@ -22,8 +22,11 @@ import {
   GL_UNIFORM_OFFSET,
   GL_ARRAY_BUFFER,
   GL_ELEMENT_ARRAY_BUFFER,
+  GL_UNPACK_FLIP_Y_WEBGL,
+  GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
 } from './gl-constants';
 import { Shader } from './shaders/shader';
+import { Texture } from '../textures/texture';
 
 export function initShaderProgram(gl: WebGL2RenderingContext, vertexSource: string, fragSource: string): Shader | null {
   const vertexShader = loadShader(gl, GL_VERTEX_SHADER, vertexSource)!;
@@ -101,8 +104,11 @@ export function createTexture(gl: WebGL2RenderingContext, size: Vector2): WebGLT
   return texture;
 }
 
-export function canvasToTexture(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement): WebGLTexture {
-  const texture = gl.createTexture()!;
+export function canvasToTexture(
+  gl: WebGL2RenderingContext,
+  canvas: HTMLCanvasElement,
+  texture: WebGLTexture,
+): WebGLTexture {
   gl.bindTexture(GL_TEXTURE_2D, texture);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -112,31 +118,50 @@ export function canvasToTexture(gl: WebGL2RenderingContext, canvas: HTMLCanvasEl
   return texture;
 }
 
-export function loadTexture(gl: WebGL2RenderingContext, url: string): WebGLTexture {
-  const texture = gl.createTexture()!;
-  gl.bindTexture(GL_TEXTURE_2D, texture);
-  const level = 0;
-  const internalFormat = GL_RGBA;
-  const width = 1;
-  const height = 1;
-  const border = 0;
-  const srcFormat = GL_RGBA;
-  const srcType = GL_UNSIGNED_BYTE;
-  const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-  gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<Texture> {
+  return new Promise((resolve, reject) => {
+    let texture: Texture = {
+      texture: gl.createTexture()!,
+      size: [1, 1],
+      sourceRect: {
+        position: [0, 0],
+        size: [1, 1],
+      },
+    };
 
-  const image = new Image();
-  image.onload = () => {
-    gl.bindTexture(GL_TEXTURE_2D, texture);
-    gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
-    gl.generateMipmap(GL_TEXTURE_2D);
-  };
-  image.onerror = (err) => {
-    console.log(err);
-  };
+    gl.bindTexture(GL_TEXTURE_2D, texture.texture);
+    const level = 0;
+    const internalFormat = GL_RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = GL_RGBA;
+    const srcType = GL_UNSIGNED_BYTE;
+    const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+    gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
 
-  image.src = url;
-  return texture;
+    const image = new Image();
+    image.onload = () => {
+      gl.bindTexture(GL_TEXTURE_2D, texture.texture);
+      gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+      gl.generateMipmap(GL_TEXTURE_2D);
+      texture.size = [image.width, image.height];
+      texture.sourceRect.size = texture.size;
+      resolve(texture);
+    };
+
+    image.onerror = (err) => {
+      reject(err);
+    };
+
+    image.src = url;
+  });
 }
 
 export function logAllActiveUniforms(gl: WebGL2RenderingContext, program: WebGLProgram) {

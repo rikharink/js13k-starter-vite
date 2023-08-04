@@ -18,7 +18,24 @@ import { ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import { Passthrough } from './rendering/post-effects/passthrough';
 import { Vhs } from './rendering/post-effects/vhs';
-import { generateColorNoiseTexture, generateSolidTexture } from './rendering/textures';
+import { generateColorNoiseTexture } from './textures/textures';
+import atlasTexture from './textures/atlas.png';
+import _atlas from './textures/atlas.json';
+import { Atlas } from './textures/atlas';
+import GUI from 'lil-gui';
+import uvTest from './textures/test_uv.jpg';
+
+const atlas = _atlas as Atlas;
+
+let lil;
+let gui: GUI;
+let s: any;
+
+if (import.meta.env.DEV) {
+  lil = await import('lil-gui');
+  gui = new lil.GUI();
+  s = await import('stats.js');
+}
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -39,109 +56,114 @@ export const rng = getRandom('JS13K2023');
 const sceneManager = new SceneManager();
 export let t = 0;
 
-const resourceManager = new ResourceManagerBuilder()
+new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
   .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
   .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
-  .addProceduralTexture('atlas', () => generateSolidTexture(gl, [255, 255, 255]))
-  .build(gl, sceneManager);
+  .addTextureAtlas(atlasTexture, atlas)
+  .addTexture('uv', uvTest)
+  .build(gl, sceneManager)
+  .then((resourceManager) => {
+    resourceManager
+      .addPostEffect('vhs', new Vhs(gl, resourceManager))
+      .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
+      .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
-resourceManager
-  .addPostEffect('vhs', new Vhs(gl, resourceManager))
-  .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
-  .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
+    const renderer = new MainRenderer(gl, resourceManager);
 
-const renderer = new MainRenderer(gl, resourceManager);
+    sceneManager.pushScene(new BaseScene(resourceManager));
+    let stats: Stats | undefined = undefined;
+    if (import.meta.env.DEV) {
+      gui.add(Settings, 'fixedDeltaTime');
+      gui.addColor(Settings, 'clearColor');
+      gui.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
+      gui.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
+      gui.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
+      gui.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
+      gui.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
+      gui.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
+      gui.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
+      gui.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
 
-sceneManager.pushScene(new BaseScene(resourceManager));
-let stats: Stats | undefined = undefined;
-if (import.meta.env.DEV) {
-  const lil = await import('lil-gui');
-  const gui = new lil.GUI();
-  const s = await import('stats.js');
+      stats = new s.default();
+      stats!.showPanel(0);
+      document.body.appendChild(stats!.dom);
+    }
 
-  gui.add(Settings, 'fixedDeltaTime');
-  gui.addColor(Settings, 'clearColor');
-  gui.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
-  gui.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
-  gui.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
-  gui.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
-  gui.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
-  gui.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
-  gui.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
-  gui.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
+    let audioSystem: AudioSystem | undefined = undefined;
+    document.addEventListener(
+      'pointerdown',
+      () => {
+        audioSystem = new AudioSystem();
+      },
+      { once: true },
+    );
 
-  stats = new s.default();
-  stats.showPanel(0);
-  document.body.appendChild(stats.dom);
-}
+    let _then = 0;
+    let _accumulator = 0;
 
-let audioSystem: AudioSystem | undefined = undefined;
-document.addEventListener(
-  'pointerdown',
-  () => {
-    audioSystem = new AudioSystem();
-  },
-  { once: true },
-);
+    function gameloop(now: number): void {
+      stats?.begin();
+      requestAnimationFrame(gameloop);
+      if (isPaused) return;
 
-let _then = 0;
-let _accumulator = 0;
+      t = now;
+      const dt = now - _then;
+      if (dt > 1000) {
+        _then = now;
+        return;
+      }
 
-function gameloop(now: number): void {
-  stats?.begin();
-  requestAnimationFrame(gameloop);
-  if (isPaused) return;
+      _accumulator += dt;
+      while (_accumulator >= Settings.fixedDeltaTime) {
+        //FIXED STEP
+        sceneManager.currentScene.tick(gl);
+        _accumulator -= Settings.fixedDeltaTime;
+      }
 
-  t = now;
-  const dt = now - _then;
-  if (dt > 1000) {
-    _then = now;
-    return;
-  }
+      //VARIABLE STEP
 
-  _accumulator += dt;
-  while (_accumulator >= Settings.fixedDeltaTime) {
-    //FIXED STEP
-    sceneManager.currentScene.tick(gl);
-    _accumulator -= Settings.fixedDeltaTime;
-  }
+      renderer.begin(gl);
+      renderer.render(
+        gl,
+        sceneManager.currentScene,
+        _accumulator / Settings.fixedDeltaTime,
+        now,
+        sceneManager.currentScene.sprites.length,
+      );
+      renderer.end(gl);
 
-  //VARIABLE STEP
+      keyboardManager.tick();
+      gamepadManager.tick();
+      pointerManager.tick();
+      _then = now;
+      stats?.end();
+    }
 
-  renderer.begin(gl);
-  renderer.render(gl, sceneManager.currentScene, _accumulator / Settings.fixedDeltaTime, now);
-  renderer.end(gl);
+    function pause(): void {
+      if (audioSystem) {
+        audioSystem?.mute();
+      }
+      isPaused = true;
+    }
 
-  keyboardManager.tick();
-  gamepadManager.tick();
-  pointerManager.tick();
-  _then = now;
-  stats?.end();
-}
+    function resume(): void {
+      console.log('resume');
+      if (audioSystem) {
+        audioSystem.unmute();
+      }
+      isPaused = false;
+    }
 
-function pause(): void {
-  if (audioSystem) {
-    audioSystem?.mute();
-  }
-  isPaused = true;
-}
+    requestAnimationFrame(gameloop);
 
-function resume(): void {
-  console.log('resume');
-  if (audioSystem) {
-    audioSystem.unmute();
-  }
-  isPaused = false;
-}
-
-requestAnimationFrame(gameloop);
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    pause();
-  } else {
-    resume();
-  }
-});
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        pause();
+      } else {
+        resume();
+      }
+    });
+  })
+  .catch((e) => console.error(e));

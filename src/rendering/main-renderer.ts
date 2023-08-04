@@ -1,11 +1,4 @@
-import {
-  GL_BLEND,
-  GL_COLOR_BUFFER_BIT,
-  GL_DEPTH_BUFFER_BIT,
-  GL_DEPTH_TEST,
-  GL_UNPACK_FLIP_Y_WEBGL,
-  GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
-} from './gl-constants';
+import { GL_BLEND, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_DEPTH_TEST } from './gl-constants';
 import { Settings } from '../settings';
 import { Scene } from '../scenes/scene';
 import { Framebuffer } from './framebuffer';
@@ -26,19 +19,17 @@ export class MainRenderer implements Renderer {
     this.resourceManager = resourceManager;
     this.spriteRenderer = new SpriteRenderer(resourceManager);
     this.spriteRenderer.initialize(gl);
-    this.hudRenderer = new HudRenderer(resourceManager);
+    this.hudRenderer = new HudRenderer(gl, resourceManager);
   }
 
   public begin(gl: WebGL2RenderingContext): void {
     this.sceneBuffer.enable(gl);
     gl.enable(GL_DEPTH_TEST);
-    gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
-    gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   }
 
   stop = false;
 
-  public render(gl: WebGL2RenderingContext, scene: Scene, _alpha: number, time: Milliseconds): void {
+  public render(gl: WebGL2RenderingContext, scene: Scene, _alpha: number, time: Milliseconds, count: number): void {
     const clearColor = Settings.clearColor;
     gl.clearColor(clearColor[0], clearColor[1], clearColor[2], 1);
     gl.viewport(0, 0, Settings.resolution[0], Settings.resolution[1]);
@@ -51,7 +42,7 @@ export class MainRenderer implements Renderer {
     this.spriteRenderer.end(gl);
 
     this.hudRenderer.begin(gl);
-    this.hudRenderer.draw(gl, time);
+    this.hudRenderer.draw(gl, time, count);
     this.hudRenderer.end(gl);
 
     gl.disable(GL_BLEND);

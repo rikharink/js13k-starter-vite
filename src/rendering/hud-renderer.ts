@@ -1,5 +1,5 @@
 import { ResourceManager } from '../managers/resource-manager';
-import { RgbColor, rgbaString } from '../math/color';
+import { rgbaString } from '../math/color';
 import { identityMatrix } from '../math/matrix4x4';
 import { Vector2 } from '../math/vector2';
 import { canvasToTexture } from './gl-util';
@@ -17,22 +17,19 @@ import {
 import { Renderer } from './renderer';
 import { Shader } from './shaders/shader';
 
-interface TextOptions {
-  color: RgbColor;
-  font: string;
-}
-
 export class HudRenderer implements Renderer {
   private ctx: CanvasRenderingContext2D;
   private canvas: HTMLCanvasElement;
   private shader: Shader;
+  private texture: WebGLTexture;
 
-  constructor(resourceManager: ResourceManager) {
+  constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
     this.canvas = document.createElement('canvas');
     this.canvas.width = Settings.resolution[0];
     this.canvas.height = Settings.resolution[1];
     this.ctx = this.canvas.getContext('2d')!;
     this.shader = resourceManager.shaders.get('post')!;
+    this.texture = gl.createTexture()!;
   }
 
   begin(gl: WebGL2RenderingContext): void {
@@ -41,18 +38,26 @@ export class HudRenderer implements Renderer {
     this.shader.enable(gl);
     gl.uniformMatrix4fv(this.shader['u_colorMatrix'], false, identityMatrix);
     gl.uniform4f(this.shader['u_offset'], 0, 0, 0, 1);
+
+    this.ctx.font = '42px sans-serif';
+    this.ctx.fillStyle = rgbaString([255, 255, 255], 255);
   }
 
-  public draw(gl: WebGL2RenderingContext, now: Milliseconds): void {
+  public draw(gl: WebGL2RenderingContext, now: Milliseconds, count: number): void {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, Settings.resolution[0], Settings.resolution[1]);
     this.drawText(secondsToHms(Math.floor(now / 1000)), [30, 30]);
     const today = new Date();
-    this.drawText(`${today.getUTCFullYear()}-${today.getUTCMonth()}-${today.getUTCDay()}`, [
+    const year = today.getFullYear();
+    const month = `${today.getMonth() + 1}`.padStart(2, '0');
+    const day = `${today.getDate()}`.padStart(2, '0');
+    
+    this.drawText(`${year}-${month}-${day}`, [
       30,
       Settings.resolution[1] - 42 - 30,
     ]);
 
+    this.drawText(`squares: ${count}`, [Settings.resolution[0] - 30, 30]);
 
     gl.uniform1i(this.shader['u_buffer'], 3);
     gl.activeTexture(GL_TEXTURE3);
@@ -66,24 +71,17 @@ export class HudRenderer implements Renderer {
   }
 
   private getTexture(gl: WebGL2RenderingContext): WebGLTexture {
-    return canvasToTexture(gl, this.canvas);
+    return canvasToTexture(gl, this.canvas, this.texture);
   }
 
-  private drawText(
-    text: string,
-    position: Vector2,
-    options: TextOptions = {
-      color: [255, 255, 255],
-      font: '42px sans-serif',
-    },
-  ) {
-    const ctx = this.ctx;
-    ctx.font = options.font;
-    ctx.fillStyle = rgbaString(options.color, 255);
-    const measure = ctx.measureText(text);
-    const x = position[0];
+  private drawText(text: string, position: Vector2) {
+    const measure = this.ctx.measureText(text);
+    let x = position[0];
+    if (position[0] + measure.actualBoundingBoxRight >= Settings.resolution[0]) {
+      x -= measure.actualBoundingBoxRight - measure.actualBoundingBoxLeft;
+    }
     const y = position[1] + (measure.actualBoundingBoxAscent - measure.actualBoundingBoxDescent);
-    ctx.fillText(text, x, y);
+    this.ctx.fillText(text, x, y);
   }
 }
 
