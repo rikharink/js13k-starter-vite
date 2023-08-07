@@ -23,8 +23,7 @@ import atlasTexture from './textures/atlas.png';
 import _atlas from './textures/atlas.json';
 import { Atlas } from './textures/atlas';
 import GUI from 'lil-gui';
-import uvTest from './textures/test_uv.jpg';
-
+import noise from './textures/noise.svg';
 const atlas = _atlas as Atlas;
 
 let lil;
@@ -61,8 +60,8 @@ new ResourceManagerBuilder()
   .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
   .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
-  .addTextureAtlas(atlasTexture, atlas)
-  .addTexture('uv', uvTest)
+  .addTextureAtlas(atlasTexture, atlas, true)
+  .addSvgTexture('snoise', noise, false, true)
   .build(gl, sceneManager)
   .then((resourceManager) => {
     resourceManager

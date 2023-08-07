@@ -66,4 +66,5 @@ void main() {
 
     col *= vignette(v_uv, 1.9f, .6f, 8.f);
     f_color = vec4(col, 1);
+    //f_color = vec4(vec3(noise(uv)), 1.f);
 }

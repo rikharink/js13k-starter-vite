@@ -7,6 +7,8 @@ import { Sprite } from '../rendering/sprite';
 import { Texture } from '../textures/texture';
 import { Settings } from '../settings';
 import { Scene } from './scene';
+import { dir } from 'console';
+import { TAU } from '../math/const';
 
 export class BaseScene implements Scene {
   public name = 'base scene';
@@ -14,7 +16,7 @@ export class BaseScene implements Scene {
   private texture: Texture;
 
   public constructor(resourceManager: ResourceManager) {
-    this.texture = resourceManager.textures.get('uv')!;
+    this.texture = resourceManager.textures.get('snake')!;
     this.sprites = [];
     for (let i = 0; i < 10; i++) {
       this.addSprite();
@@ -38,6 +40,10 @@ export class BaseScene implements Scene {
       color: [rng(), rng(), rng()],
       texture: this.texture,
       direction,
+      flipx: Math.sign(direction[0]) === 1,
+      flipy: Math.sign(direction[1]) === 1,
+      rotation: 0,
+      anchor: [0.5, 0.5],
     });
   }
 
@@ -68,6 +74,7 @@ export class BaseScene implements Scene {
         sprite.drawRect.position[0] >= Settings.resolution[0] - sprite.drawRect.size[0]
       ) {
         bounce(sprite, [0, 1]);
+        sprite.flipx = Math.sign(sprite.direction![0]) === 1;
         hitWall++;
       }
       if (
@@ -75,6 +82,7 @@ export class BaseScene implements Scene {
         sprite.drawRect.position[1] >= Settings.resolution[1] - sprite.drawRect.size[1]
       ) {
         bounce(sprite, [-1, 0]);
+        sprite.flipy = Math.sign(sprite.direction![1]) === 1;
         hitWall++;
       }
 

@@ -11,7 +11,7 @@ export class Vhs extends PostEffect {
 
   constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
     super('vhs', gl, resourceManager.shaders.get('vhs')!, new Framebuffer(gl));
-    this.noise = resourceManager.textures.get('noise')!;
+    this.noise = resourceManager.textures.get('snoise')!;
     super.isEnabled = true;
   }
 

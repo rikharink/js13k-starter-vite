@@ -138,3 +138,17 @@ export function randomPointOnUnitCircle(out: Vector2, rng: Random): Vector2 {
 export function angle(a: Vector2, b: Vector2): Radian {
   return Math.acos(dot(a, b) / (length(a) * length(b)));
 }
+
+export function rotate(o: Vector2, a: Vector2, b: Vector2, r: Radian): Vector2 {
+  //Translate point to the origin
+  let p0 = a[0] - b[0],
+    p1 = a[1] - b[1],
+    sinC = Math.sin(r),
+    cosC = Math.cos(r);
+
+  //perform rotation and translate to correct position
+  o[0] = p0 * cosC - p1 * sinC + b[0];
+  o[1] = p0 * sinC + p1 * cosC + b[1];
+
+  return o;
+}

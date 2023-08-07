@@ -1,4 +1,5 @@
 import { ResourceManager } from '../managers/resource-manager';
+import { Vector2, rotate } from '../math/vector2';
 import { Settings } from '../settings';
 import { Camera } from './camera';
 import {
@@ -32,6 +33,13 @@ export class SpriteRenderer implements Renderer {
 
   private shader: Shader;
   private data: Float32Array = new Float32Array(FLOATS_PER_SPRITE * MAX_SPRITES_PER_BATCH);
+
+  private v0: Vector2 = [0, 0];
+  private v1: Vector2 = [0, 0];
+  private v2: Vector2 = [0, 0];
+  private v3: Vector2 = [0, 0];
+
+  private anchor: Vector2 = [0, 0];
 
   constructor(resourceManager: ResourceManager) {
     this.shader = resourceManager.shaders.get('sprite')!;
@@ -97,15 +105,42 @@ export class SpriteRenderer implements Renderer {
       this.currentTexture = sprite.texture;
     }
     let i = this.instanceCount * FLOATS_PER_SPRITE;
-    
-    const u0 = sprite.sourceRect.position[0] / sprite.texture.size[0];
-    const u1 = (sprite.sourceRect.position[0] + sprite.sourceRect.size[0]) / sprite.texture.size[0];
-    const v0 = 1 - (sprite.sourceRect.position[1] + sprite.sourceRect.size[1]) / sprite.texture.size[1];
-    const v1 = 1 - sprite.sourceRect.position[1] / sprite.texture.size[1];
+
+    let u0 = sprite.sourceRect.position[0] / sprite.texture.size[0];
+    let u1 = (sprite.sourceRect.position[0] + sprite.sourceRect.size[0]) / sprite.texture.size[0];
+    let v0 = 1 - (sprite.sourceRect.position[1] + sprite.sourceRect.size[1]) / sprite.texture.size[1];
+    let v1 = 1 - sprite.sourceRect.position[1] / sprite.texture.size[1];
+
+    if (sprite.flipx) {
+      [u1, u0] = [u0, u1];
+    }
+
+    if (sprite.flipy) {
+      [v1, v0] = [v0, v1];
+    }
+
+    this.v0[0] = sprite.drawRect.position[0];
+    this.v0[1] = sprite.drawRect.position[1];
+    this.v1[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0];
+    this.v1[1] = sprite.drawRect.position[1];
+    this.v2[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0];
+    this.v2[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1];
+    this.v3[0] = sprite.drawRect.position[0];
+    this.v3[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1];
+
+    this.anchor[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0] * sprite.anchor[0];
+    this.anchor[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1] * sprite.anchor[1];
+
+    if (sprite.rotation !== 0) {
+      rotate(this.v0, this.v0, this.anchor, sprite.rotation);
+      rotate(this.v1, this.v1, this.anchor, sprite.rotation);
+      rotate(this.v2, this.v2, this.anchor, sprite.rotation);
+      rotate(this.v3, this.v3, this.anchor, sprite.rotation);
+    }
 
     // top left
-    this.data[0 + i] = sprite.drawRect.position[0]; // x
-    this.data[1 + i] = sprite.drawRect.position[1]; // y
+    this.data[0 + i] = this.v0[0]; // x
+    this.data[1 + i] = this.v0[1]; // y
     this.data[2 + i] = u0; // u
     this.data[3 + i] = v1; // v
     this.data[4 + i] = sprite.color[0]; // r
@@ -113,8 +148,8 @@ export class SpriteRenderer implements Renderer {
     this.data[6 + i] = sprite.color[2]; // b
 
     // top right
-    this.data[7 + i] = sprite.drawRect.position[0] + sprite.drawRect.size[0]; // x
-    this.data[8 + i] = sprite.drawRect.position[1]; // y
+    this.data[7 + i] = this.v1[0]; // x
+    this.data[8 + i] = this.v1[1]; // y
     this.data[9 + i] = u1; // u
     this.data[10 + i] = v1; // v
     this.data[11 + i] = sprite.color[0]; // r
@@ -122,8 +157,8 @@ export class SpriteRenderer implements Renderer {
     this.data[13 + i] = sprite.color[2]; // b
 
     // bottom right
-    this.data[14 + i] = sprite.drawRect.position[0] + sprite.drawRect.size[0]; // x
-    this.data[15 + i] = sprite.drawRect.position[1] + sprite.drawRect.size[1]; // y
+    this.data[14 + i] = this.v2[0]; // x
+    this.data[15 + i] = this.v2[1]; // y
     this.data[16 + i] = u1; // u
     this.data[17 + i] = v0; // v
     this.data[18 + i] = sprite.color[0]; // r
@@ -131,8 +166,8 @@ export class SpriteRenderer implements Renderer {
     this.data[20 + i] = sprite.color[2]; // b
 
     // bottom left
-    this.data[21 + i] = sprite.drawRect.position[0]; // x
-    this.data[22 + i] = sprite.drawRect.position[1] + sprite.drawRect.size[1]; // y
+    this.data[21 + i] = this.v3[0]; // x
+    this.data[22 + i] = this.v3[1]; // y
     this.data[23 + i] = u0; // u
     this.data[24 + i] = v0; // v
     this.data[25 + i] = sprite.color[0]; // r

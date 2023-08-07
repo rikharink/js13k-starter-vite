@@ -24,6 +24,8 @@ import {
   GL_ELEMENT_ARRAY_BUFFER,
   GL_UNPACK_FLIP_Y_WEBGL,
   GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+  GL_LINEAR,
+  GL_REPEAT,
 } from './gl-constants';
 import { Shader } from './shaders/shader';
 import { Texture } from '../textures/texture';
@@ -106,19 +108,25 @@ export function createTexture(gl: WebGL2RenderingContext, size: Vector2): WebGLT
 
 export function canvasToTexture(
   gl: WebGL2RenderingContext,
-  canvas: HTMLCanvasElement,
+  canvas: HTMLCanvasElement | OffscreenCanvas,
   texture: WebGLTexture,
+  scaleNearest = false,
 ): WebGLTexture {
   gl.bindTexture(GL_TEXTURE_2D, texture);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
   return texture;
 }
 
-export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<Texture> {
+export function loadTexture(
+  gl: WebGL2RenderingContext,
+  url: string,
+  scaleNearest = false,
+  repeat = false,
+): Promise<Texture> {
   return new Promise((resolve, reject) => {
     let texture: Texture = {
       texture: gl.createTexture()!,
@@ -141,14 +149,15 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<Te
     gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
 
     const image = new Image();
+
     image.onload = () => {
       gl.bindTexture(GL_TEXTURE_2D, texture.texture);
       gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
       gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
+      gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
       gl.texImage2D(GL_TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
       gl.generateMipmap(GL_TEXTURE_2D);
       texture.size = [image.width, image.height];
@@ -156,9 +165,7 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<Te
       resolve(texture);
     };
 
-    image.onerror = (err) => {
-      reject(err);
-    };
+    image.onerror = reject;
 
     image.src = url;
   });

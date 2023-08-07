@@ -57,7 +57,7 @@ export class HudRenderer implements Renderer {
       Settings.resolution[1] - 42 - 30,
     ]);
 
-    this.drawText(`squares: ${count}`, [Settings.resolution[0] - 30, 30]);
+    this.drawText(`sprites: ${count}`, [Settings.resolution[0] - 30, 30]);
 
     gl.uniform1i(this.shader['u_buffer'], 3);
     gl.activeTexture(GL_TEXTURE3);

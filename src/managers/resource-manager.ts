@@ -35,8 +35,8 @@ export class ResourceManager {
 }
 
 type ShaderToLoad = [key: string, vert: string, frag: string];
-type ImageToLoad = [key: string, uri: string];
-type AtlasToLoad = [uri: string, atlas: Atlas];
+type ImageToLoad = [key: string, uri: string, scaleNearest: boolean, repeat: boolean];
+type AtlasToLoad = [uri: string, atlas: Atlas, scaleNearest: boolean];
 type TextureToGenerate = [key: string, generator: TextureGenerator];
 type TextureGenerator = () => Texture;
 
@@ -52,13 +52,13 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public addTexture(key: string, uri: string): ResourceManagerBuilder {
-    this.imagesToLoad.push([key, uri]);
+  public addTexture(key: string, uri: string, scaleNearest = false, repeat = false): ResourceManagerBuilder {
+    this.imagesToLoad.push([key, uri, scaleNearest, repeat]);
     return this;
   }
 
-  public addTextureAtlas(uri: string, atlas: Atlas): ResourceManagerBuilder {
-    this.atlasToLoad.push([uri, atlas]);
+  public addTextureAtlas(uri: string, atlas: Atlas, scaleNearest = false): ResourceManagerBuilder {
+    this.atlasToLoad.push([uri, atlas, scaleNearest]);
     return this;
   }
 
@@ -67,12 +67,12 @@ export class ResourceManagerBuilder {
     return this;
   }
 
-  public addSvgTexture(key: string, svgSource: string): ResourceManagerBuilder {
+  public addSvgTexture(key: string, svgSource: string, scaleNearest = false, repeat = false): ResourceManagerBuilder {
     const svgSeed = Math.ceil(rng() * 9999999999);
     const svg64 = btoa(svgSource.replace('seed="1"', `seed="${svgSeed}"`));
     const start = 'data:image/svg+xml;base64,';
     const src = start + svg64;
-    this.imagesToLoad.push([key, src]);
+    this.imagesToLoad.push([key, src, scaleNearest, repeat]);
     return this;
   }
 
@@ -92,9 +92,9 @@ export class ResourceManagerBuilder {
 
     const promises: Promise<any>[] = [];
 
-    for (const [uri, atlas] of this.atlasToLoad) {
+    for (const [uri, atlas, scaleNearest] of this.atlasToLoad) {
       promises.push(
-        loadTexture(gl, uri).then((texture) => {
+        loadTexture(gl, uri, scaleNearest).then((texture) => {
           for (const t of atlas.textures) {
             const atlasTexture: Texture = { ...texture };
             atlasTexture.sourceRect = {
@@ -118,9 +118,9 @@ export class ResourceManagerBuilder {
       incrementProgress();
     }
 
-    for (const [key, uri] of this.imagesToLoad) {
+    for (const [key, uri, scaleNearest, repeat] of this.imagesToLoad) {
       promises.push(
-        loadTexture(gl, uri).then((texture) => {
+        loadTexture(gl, uri, scaleNearest, repeat).then((texture) => {
           this.mgr.textures.set(key, texture);
           incrementProgress();
         }),

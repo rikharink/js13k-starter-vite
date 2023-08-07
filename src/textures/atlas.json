@@ -49,6 +49,21 @@
       "name": "9",
       "position": [54, 0],
       "size": [6, 5]
+    },
+    {
+      "name": "man",
+      "position": [0, 8],
+      "size": [8, 8]
+    },
+    {
+      "name": "fire",
+      "position": [8, 8],
+      "size": [8, 8]
+    },
+    {
+      "name": "snake",
+      "position": [16, 8],
+      "size": [8, 8]
     }
   ]
 }
