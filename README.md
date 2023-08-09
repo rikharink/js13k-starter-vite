@@ -23,3 +23,5 @@ pnpm run build
 * [Bence Szabó - for his article about generating noise textures with svg](https://css-tricks.com/creating-patterns-with-svg-filters/)
 * [FMS Cat - for the VHS shader](https://www.shadertoy.com/view/XtBXDt)
 * [luka712 - for the CRT shader](https://luka712.github.io/2018/07/21/CRT-effect-Shadertoy-Unity/)
+* [SimonDev - for the spatial hash grid tutorial](https://www.youtube.com/watch?v=oewDaISQpw0&pp=ygURc3BhdGlhbCBoYXNoIGdyaWQ%3D)
+* [Josh Forisha - for the open simplex noise implementation](https://github.com/joshforisha/open-simplex-noise-js)

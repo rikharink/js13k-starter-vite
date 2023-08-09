@@ -1,3 +1,4 @@
+import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
 import { Percentage } from '../types';
@@ -7,6 +8,7 @@ export class LoaderScene implements Scene {
   public name = 'loader';
   public sprites: Sprite[];
   public progress: Percentage = 0;
+  public trauma: number = 0;
 
   public canvas: HTMLCanvasElement = document.createElement('canvas');
   private ctx: CanvasRenderingContext2D;
@@ -64,5 +66,5 @@ export class LoaderScene implements Scene {
     ctx.fillRect(x, y, mw * s, mh);
   }
 
-  public tick(_gl: WebGL2RenderingContext): void {}
+  public tick(_camera: Camera): void {}
 }

@@ -15,8 +15,8 @@ import {
   GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
   GL_UNSIGNED_BYTE,
 } from '../rendering/gl-constants';
-import { getWhiteNoise } from '../rendering/noise';
 import { Texture } from './texture';
+import { getWhiteNoise } from '../math/noise/whitenoise';
 
 export function generateTextureFromData(
   gl: WebGL2RenderingContext,

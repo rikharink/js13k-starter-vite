@@ -7,6 +7,7 @@ import { Milliseconds } from '../types';
 import { SpriteRenderer } from './sprite-renderer';
 import { Renderer } from './renderer';
 import { HudRenderer } from './hud-renderer';
+import { Camera } from './camera';
 
 export class MainRenderer implements Renderer {
   private sceneBuffer: Framebuffer;
@@ -14,10 +15,10 @@ export class MainRenderer implements Renderer {
   private spriteRenderer: SpriteRenderer;
   private hudRenderer: HudRenderer;
 
-  constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
+  constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager, camera: Camera) {
     this.sceneBuffer = new Framebuffer(gl);
     this.resourceManager = resourceManager;
-    this.spriteRenderer = new SpriteRenderer(resourceManager);
+    this.spriteRenderer = new SpriteRenderer(resourceManager, camera);
     this.spriteRenderer.initialize(gl);
     this.hudRenderer = new HudRenderer(gl, resourceManager);
   }
@@ -29,7 +30,7 @@ export class MainRenderer implements Renderer {
 
   stop = false;
 
-  public render(gl: WebGL2RenderingContext, scene: Scene, _alpha: number, time: Milliseconds, count: number): void {
+  public render(gl: WebGL2RenderingContext, scene: Scene, _alpha: number, time: Milliseconds): void {
     const clearColor = Settings.clearColor;
     gl.clearColor(clearColor[0], clearColor[1], clearColor[2], 1);
     gl.viewport(0, 0, Settings.resolution[0], Settings.resolution[1]);
@@ -42,7 +43,7 @@ export class MainRenderer implements Renderer {
     this.spriteRenderer.end(gl);
 
     this.hudRenderer.begin(gl);
-    this.hudRenderer.draw(gl, time, count);
+    this.hudRenderer.draw(gl, time, scene.sprites.length);
     this.hudRenderer.end(gl);
 
     gl.disable(GL_BLEND);

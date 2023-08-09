@@ -24,6 +24,8 @@ import _atlas from './textures/atlas.json';
 import { Atlas } from './textures/atlas';
 import GUI from 'lil-gui';
 import noise from './textures/noise.svg';
+import { Camera } from './rendering/camera';
+import { TAU } from './math/const';
 const atlas = _atlas as Atlas;
 
 let lil;
@@ -48,6 +50,9 @@ const gl = canvas.getContext('webgl2', {
 const keyboardManager = new KeyboardManager();
 const gamepadManager = new GamepadManager();
 const pointerManager = new PointerManager(canvas);
+
+const camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
+
 let isPaused = false;
 
 export const rng = getRandom('JS13K2023');
@@ -69,21 +74,33 @@ new ResourceManagerBuilder()
       .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
       .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
-    const renderer = new MainRenderer(gl, resourceManager);
+    const renderer = new MainRenderer(gl, resourceManager, camera);
 
     sceneManager.pushScene(new BaseScene(resourceManager));
     let stats: Stats | undefined = undefined;
     if (import.meta.env.DEV) {
-      gui.add(Settings, 'fixedDeltaTime');
-      gui.addColor(Settings, 'clearColor');
-      gui.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
-      gui.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
-      gui.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
-      gui.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
-      gui.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
-      gui.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
-      gui.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
-      gui.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
+      const settings = gui.addFolder('settings');
+      settings.add(Settings, 'fixedDeltaTime');
+      settings.addColor(Settings, 'clearColor');
+      settings.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
+      settings.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
+
+      const pfx = gui.addFolder('postEffects');
+      pfx.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
+      pfx.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
+      pfx.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
+      pfx.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
+      pfx.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
+
+      const scene = gui.addFolder('scene');
+      scene.add(sceneManager.currentScene, 'trauma', 0, 0.99999, 0.01);
+
+      const cameraGui = gui.addFolder('camera');
+      cameraGui.add(camera, 'scale', 0.01, 10, 0.01).name('zoom');
+      cameraGui.add(camera, 'rotation', 0, TAU);
 
       stats = new s.default();
       stats!.showPanel(0);
@@ -117,20 +134,16 @@ new ResourceManagerBuilder()
       _accumulator += dt;
       while (_accumulator >= Settings.fixedDeltaTime) {
         //FIXED STEP
-        sceneManager.currentScene.tick(gl);
+        sceneManager.currentScene.tick(camera);
+        camera.update(t, sceneManager.currentScene.trauma * sceneManager.currentScene.trauma);
+        t += Settings.fixedDeltaTime;
         _accumulator -= Settings.fixedDeltaTime;
       }
 
       //VARIABLE STEP
 
       renderer.begin(gl);
-      renderer.render(
-        gl,
-        sceneManager.currentScene,
-        _accumulator / Settings.fixedDeltaTime,
-        now,
-        sceneManager.currentScene.sprites.length,
-      );
+      renderer.render(gl, sceneManager.currentScene, _accumulator / Settings.fixedDeltaTime, now);
       renderer.end(gl);
 
       keyboardManager.tick();

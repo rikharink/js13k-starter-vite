@@ -1,5 +1,5 @@
-import { Random } from '../math/random';
-import { Size } from '../types';
+import { Random } from '../random';
+import { Size } from '../../types';
 
 export function get4ChannelNoise(size: Size, rng: Random) {
   const n = size[0] * size[1];

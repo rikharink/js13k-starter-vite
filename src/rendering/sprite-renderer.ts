@@ -1,6 +1,5 @@
 import { ResourceManager } from '../managers/resource-manager';
 import { Vector2, rotate } from '../math/vector2';
-import { Settings } from '../settings';
 import { Camera } from './camera';
 import {
   GL_ARRAY_BUFFER,
@@ -41,9 +40,9 @@ export class SpriteRenderer implements Renderer {
 
   private anchor: Vector2 = [0, 0];
 
-  constructor(resourceManager: ResourceManager) {
+  constructor(resourceManager: ResourceManager, camera: Camera) {
     this.shader = resourceManager.shaders.get('sprite')!;
-    this.camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
+    this.camera = camera;
   }
 
   public initialize(gl: WebGL2RenderingContext) {
@@ -85,7 +84,6 @@ export class SpriteRenderer implements Renderer {
 
   begin(gl: WebGL2RenderingContext): void {
     this.shader.enable(gl);
-    this.camera.update();
     this.instanceCount = 0;
 
     gl.enable(GL_BLEND);

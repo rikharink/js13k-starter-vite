@@ -721,4 +721,62 @@ export function translation(out: Matrix4x4, t: Vector3): Matrix4x4 {
   return out;
 }
 
+export function fromRotationTranslationScaleOrigin(o: Matrix4x4, q: Quaternion, t: Vector3, s: Vector3, or: Vector3) {
+  // Quaternion math
+  let x = q[0],
+    y = q[1],
+    z = q[2],
+    w = q[3];
+  let x2 = x + x;
+  let y2 = y + y;
+  let z2 = z + z;
+
+  let xx = x * x2;
+  let xy = x * y2;
+  let xz = x * z2;
+  let yy = y * y2;
+  let yz = y * z2;
+  let zz = z * z2;
+  let wx = w * x2;
+  let wy = w * y2;
+  let wz = w * z2;
+
+  let sx = s[0];
+  let sy = s[1];
+  let sz = s[2];
+
+  let ox = or[0];
+  let oy = or[1];
+  let oz = or[2];
+
+  let out0 = (1 - (yy + zz)) * sx;
+  let out1 = (xy + wz) * sx;
+  let out2 = (xz - wy) * sx;
+  let out4 = (xy - wz) * sy;
+  let out5 = (1 - (xx + zz)) * sy;
+  let out6 = (yz + wx) * sy;
+  let out8 = (xz + wy) * sz;
+  let out9 = (yz - wx) * sz;
+  let out10 = (1 - (xx + yy)) * sz;
+
+  o[0] = out0;
+  o[1] = out1;
+  o[2] = out2;
+  o[3] = 0;
+  o[4] = out4;
+  o[5] = out5;
+  o[6] = out6;
+  o[7] = 0;
+  o[8] = out8;
+  o[9] = out9;
+  o[10] = out10;
+  o[11] = 0;
+  o[12] = t[0] + ox - (out0 * ox + out4 * oy + out8 * oz);
+  o[13] = t[1] + oy - (out1 * ox + out5 * oy + out9 * oz);
+  o[14] = t[2] + oz - (out2 * ox + out6 * oy + out10 * oz);
+  o[15] = 1;
+
+  return o;
+}
+
 export const identityMatrix = create();

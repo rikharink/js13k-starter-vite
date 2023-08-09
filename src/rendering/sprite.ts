@@ -1,3 +1,5 @@
+import { Collider } from '../game/collider';
+import { Client } from '../data-structures/spatial-hash-grid';
 import { NormalizedRgbColor } from '../math/color';
 import { Vector2 } from '../math/vector2';
 import { Texture } from '../textures/texture';
@@ -9,9 +11,10 @@ export interface Rectangle {
 }
 
 export interface Sprite {
-  name: string;
+  id: number;
   drawRect: Rectangle;
   sourceRect: Rectangle;
+  collider: Collider;
   color: NormalizedRgbColor;
   texture: Texture;
   direction: Vector2 | null;
@@ -19,4 +22,5 @@ export interface Sprite {
   anchor: Vector2;
   flipx: boolean;
   flipy: boolean;
+  client: Client | null;
 }
