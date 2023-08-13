@@ -1,6 +1,5 @@
-import { intersects, pointInRectangle } from '../math/geometry/rectangle';
+import { Rectangle, intersects, pointInRectangle } from '../math/geometry/rectangle';
 import { Vector2 } from '../math/vector2';
-import { Rectangle } from '../rendering/sprite';
 
 interface OctTreeItem {
   entityId: number;
@@ -15,6 +14,7 @@ export class OctTree<T extends OctTreeItem> {
   public southwest!: OctTree<T>;
   public southeast!: OctTree<T>;
 
+  //TODO: change to AABB?
   public constructor(
     private bounds: Rectangle,
     private maxChildren: number = 4,

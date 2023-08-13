@@ -8,6 +8,7 @@ export interface Scene {
   bounds: AABB;
   trauma: number;
   traumaDampening: number;
+  camera: Camera;
   onPush(): void;
   onPop(): void;
   tick(camera: Camera): void;

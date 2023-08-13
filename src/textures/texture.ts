@@ -1,5 +1,5 @@
+import { Rectangle } from '../math/geometry/rectangle';
 import { Vector2 } from '../math/vector2';
-import { Rectangle } from '../rendering/sprite';
 
 export interface Texture {
   texture: WebGLTexture;

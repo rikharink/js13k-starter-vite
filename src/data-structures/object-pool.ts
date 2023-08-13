@@ -1,8 +1,6 @@
 export const OBJECTPOOL_OBJECT_NOT_USED = 0;
 export const OBJECTPOOL_OBJECT_USED = 1;
 
-let id: number = -1;
-
 type FuncReset<T> = (o: T) => void;
 
 interface Entity {

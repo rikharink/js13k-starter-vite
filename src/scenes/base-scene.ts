@@ -2,7 +2,7 @@ import { rng } from '../game';
 import { ResourceManager } from '../managers/resource-manager';
 import { getBoundRandomInt } from '../math/random';
 import { clamp, range } from '../math/util';
-import { Vector2, add, reflect, scale, subtract } from '../math/vector2';
+import { Vector2, add, reflect, scale } from '../math/vector2';
 import { Sprite } from '../rendering/sprite';
 import { Texture } from '../textures/texture';
 import { Scene } from './scene';

@@ -1,7 +1,7 @@
 import { LinkedList } from './linked-list';
 import { clamp } from '../math/util';
-import { Vector2 } from '../math/vector2';
-import { Rectangle } from '../rendering/sprite';
+import { Vector2, subtract } from '../math/vector2';
+import { AABB } from '../math/geometry/aabb';
 
 interface SpatialHashGridCells {
   min: number[];
@@ -12,7 +12,7 @@ interface SpatialHashGridCells {
 export class Client {
   constructor(
     public entityId: number,
-    public boundingBox: Rectangle,
+    public boundingBox: AABB,
   ) {
     this.cells = {
       min: [],
@@ -29,25 +29,25 @@ export class Client {
 export class SpatialHashGrid {
   private _cells: (LinkedList<Client> | null)[][];
   private _dimensions: Vector2;
-  private _bounds: Rectangle;
+  private _bounds: AABB;
   private _queryIds: number;
 
-  constructor(bounds: Rectangle, dimensions: Vector2) {
+  constructor(bounds: AABB, dimensions: Vector2) {
     this._cells = [...Array(dimensions[0])].map((_) => [...Array(dimensions[1])].map((_) => null));
     this._dimensions = dimensions;
     this._bounds = bounds;
     this._queryIds = 0;
   }
 
-  public newClient(entityId: number, boundingBox: Rectangle): Client {
+  public newClient(entityId: number, boundingBox: AABB): Client {
     const client: Client = new Client(entityId, boundingBox);
     this.insert(client);
     return client;
   }
 
   public updateClient(client: Client): void {
-    const [x, y] = client.boundingBox.position;
-    const [w, h] = client.boundingBox.size;
+    const [x, y] = client.boundingBox.min;
+    const [w, h] = subtract([0, 0], client.boundingBox.max, client.boundingBox.min);
 
     const i1 = this.getCellIndex([x - w / 2, y - h / 2]);
     const i2 = this.getCellIndex([x + w / 2, y + h / 2]);
@@ -67,9 +67,9 @@ export class SpatialHashGrid {
     this.insert(client);
   }
 
-  public findNear(boundingBox: Rectangle): Client[] {
-    const [x, y] = boundingBox.position;
-    const [w, h] = boundingBox.size;
+  public findNear(boundingBox: AABB): Client[] {
+    const [x, y] = boundingBox.min;
+    const [w, h] = subtract([0, 0], boundingBox.max, boundingBox.min);
 
     const i1 = this.getCellIndex([x - w / 2, y - h / 2]);
     const i2 = this.getCellIndex([x + w / 2, y + h / 2]);
@@ -124,8 +124,8 @@ export class SpatialHashGrid {
   }
 
   private insert(client: Client): void {
-    const [x, y] = client.boundingBox.position;
-    const [w, h] = client.boundingBox.size;
+    const [x, y] = client.boundingBox.min;
+    const [w, h] = subtract([0, 0], client.boundingBox.max, client.boundingBox.min);
 
     const i1 = this.getCellIndex([x - w / 2, y - h / 2]);
     const i2 = this.getCellIndex([x + w / 2, y + h / 2]);
@@ -156,8 +156,10 @@ export class SpatialHashGrid {
   }
 
   private getCellIndex(position: Vector2): Vector2 {
-    const x = clamp(0, 1, (position[0] - this._bounds.position[0]) / (this._bounds.size[0] - this._bounds.position[0]));
-    const y = clamp(0, 1, (position[1] - this._bounds.position[1]) / (this._bounds.size[1] - this._bounds.position[1]));
+    const [bx, by] = this._bounds.min;
+    const [bw, bh] = subtract([0, 0], this._bounds.max, this._bounds.min);
+    const x = clamp(0, 1, (position[0] - bx) / (bw - bx));
+    const y = clamp(0, 1, (position[1] - by) / (bh - by));
 
     const xIndex = Math.floor(x * (this._dimensions[0] - 1));
     const yIndex = Math.floor(y * (this._dimensions[1] - 1));
