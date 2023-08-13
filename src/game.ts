@@ -76,14 +76,13 @@ new ResourceManagerBuilder()
 
     const renderer = new MainRenderer(gl, resourceManager, camera);
 
-    sceneManager.pushScene(new BaseScene(resourceManager));
+    sceneManager.pushScene(new BaseScene(resourceManager, camera));
     let stats: Stats | undefined = undefined;
     if (import.meta.env.DEV) {
       const settings = gui.addFolder('settings');
       settings.add(Settings, 'fixedDeltaTime');
       settings.addColor(Settings, 'clearColor');
-      settings.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
-      settings.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
+      settings.add(Settings, 'timeScale', 0, 1);
 
       const pfx = gui.addFolder('postEffects');
       pfx.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
@@ -96,11 +95,22 @@ new ResourceManagerBuilder()
       pfx.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
 
       const scene = gui.addFolder('scene');
-      scene.add(sceneManager.currentScene, 'trauma', 0, 0.99999, 0.01);
+      scene.add(sceneManager.currentScene, 'trauma', 0, 1, 0.01);
+      scene.add(sceneManager.currentScene, 'traumaDampening', 0, 1, 0.00001);
 
       const cameraGui = gui.addFolder('camera');
       cameraGui.add(camera, 'scale', 0.01, 10, 0.01).name('zoom');
       cameraGui.add(camera, 'rotation', 0, TAU);
+      cameraGui.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
+      cameraGui.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
+      cameraGui.add(Settings, 'followCam').onChange((f: boolean) => {
+        if (!f) {
+          camera.followSpeed = [0.3, 0.3];
+          camera.wantedOrigin = camera.center;
+        } else {
+          camera.followSpeed = [0.1, 0.1];
+        }
+      });
 
       stats = new s.default();
       stats!.showPanel(0);

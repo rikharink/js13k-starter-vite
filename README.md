@@ -25,3 +25,4 @@ pnpm run build
 * [luka712 - for the CRT shader](https://luka712.github.io/2018/07/21/CRT-effect-Shadertoy-Unity/)
 * [SimonDev - for the spatial hash grid tutorial](https://www.youtube.com/watch?v=oewDaISQpw0&pp=ygURc3BhdGlhbCBoYXNoIGdyaWQ%3D)
 * [Josh Forisha - for the open simplex noise implementation](https://github.com/joshforisha/open-simplex-noise-js)
+* [Squirrel Eiserloh - for camera math inspiration](http://www.mathforgameprogrammers.com/gdc2016/GDC2016_Eiserloh_Squirrel_JuicingYourCameras.pdf)

@@ -6,6 +6,8 @@ export const Settings = {
   minLoadingTimeMs: 100,
   clearColor: [0.1, 0.37, 0.71],
   maxRotationalShake: TAU * 0.1,
-  maxTranslationalShake: 50,
+  maxTranslationalShake: 25,
   seed: 1337,
+  followCam: false,
+  timeScale: 1,
 };

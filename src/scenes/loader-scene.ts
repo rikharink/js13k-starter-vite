@@ -1,3 +1,4 @@
+import { AABB } from '../math/geometry/aabb';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
@@ -6,16 +7,22 @@ import { Scene } from './scene';
 
 export class LoaderScene implements Scene {
   public name = 'loader';
-  public sprites: Sprite[];
+  public sprites: Sprite[] = [];
+  public bounds: AABB = {
+    min: [0, 0],
+    max: [Settings.resolution[0], Settings.resolution[1]],
+  };
+
   public progress: Percentage = 0;
   public trauma: number = 0;
+  public camera: Camera = null!;
+  public traumaDampening: number = 0;
 
   public canvas: HTMLCanvasElement = document.createElement('canvas');
   private ctx: CanvasRenderingContext2D;
   private running = false;
 
   public constructor() {
-    this.sprites = [];
     this.ctx = this.canvas.getContext('2d')!;
     this.canvas.width = Settings.resolution[0];
     this.canvas.height = Settings.resolution[1];
