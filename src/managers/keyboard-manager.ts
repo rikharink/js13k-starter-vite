@@ -8,19 +8,20 @@ export class KeyboardManager {
   }
 
   private onKeyDown(ev: KeyboardEvent): void {
-    if (this.currentKeyState.has(ev.key)) {
+    if (this.currentKeyState.has(ev.code)) {
       return;
     }
-    this.previousKeyState.delete(ev.key);
-    this.currentKeyState.add(ev.key);
+    console.debug(ev.code);
+    this.previousKeyState.delete(ev.code);
+    this.currentKeyState.add(ev.code);
   }
 
   private onKeyUp(ev: KeyboardEvent): void {
-    if (!this.currentKeyState.has(ev.key)) {
+    if (!this.currentKeyState.has(ev.code)) {
       return;
     }
-    this.previousKeyState.add(ev.key);
-    this.currentKeyState.delete(ev.key);
+    this.previousKeyState.add(ev.code);
+    this.currentKeyState.delete(ev.code);
   }
 
   public hasKeyDown(key: string): boolean {
@@ -31,7 +32,9 @@ export class KeyboardManager {
     return this.previousKeyState.has(key) && !this.currentKeyState.has(key);
   }
 
-  public tick(): void {
+  public tick(): void {}
+
+  public clear(): void {
     this.previousKeyState.clear();
   }
 }

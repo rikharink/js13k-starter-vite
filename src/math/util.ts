@@ -12,6 +12,10 @@ export function clamp(min: number, max: number, n: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
+export function sat(n: number): number {
+  return clamp(0, 1, n);
+}
+
 export function normalize(value: number, min: number, max: number): number {
   return (value - min) / (max - min);
 }

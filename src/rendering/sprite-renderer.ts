@@ -25,7 +25,6 @@ const INDICES_PER_SPRITE = 6;
 export class SpriteRenderer implements Renderer {
   private currentTexture: WebGLTexture | null = null;
   private instanceCount = 0;
-  private camera!: Camera;
 
   private indexBuffer!: WebGLBuffer;
   private buffer!: WebGLBuffer;
@@ -40,9 +39,8 @@ export class SpriteRenderer implements Renderer {
 
   private anchor: Vector2 = [0, 0];
 
-  constructor(resourceManager: ResourceManager, camera: Camera) {
+  constructor(resourceManager: ResourceManager) {
     this.shader = resourceManager.shaders.get('sprite')!;
-    this.camera = camera;
   }
 
   public initialize(gl: WebGL2RenderingContext) {
@@ -82,14 +80,14 @@ export class SpriteRenderer implements Renderer {
     this.indexBuffer = createIndexBuffer(gl, data);
   }
 
-  begin(gl: WebGL2RenderingContext): void {
+  begin(gl: WebGL2RenderingContext, camera: Camera): void {
     this.shader.enable(gl);
     this.instanceCount = 0;
 
     gl.enable(GL_BLEND);
     gl.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    gl.uniformMatrix4fv(this.shader['u_projectionViewMatrix'], false, this.camera.projectionViewMatrix);
+    gl.uniformMatrix4fv(this.shader['u_projectionViewMatrix'], false, camera.projectionViewMatrix);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
@@ -117,17 +115,17 @@ export class SpriteRenderer implements Renderer {
       [v1, v0] = [v0, v1];
     }
 
-    this.v0[0] = sprite.drawRect.position[0];
-    this.v0[1] = sprite.drawRect.position[1];
-    this.v1[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0];
-    this.v1[1] = sprite.drawRect.position[1];
-    this.v2[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0];
-    this.v2[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1];
-    this.v3[0] = sprite.drawRect.position[0];
-    this.v3[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1];
+    this.v0[0] = sprite.position[0];
+    this.v0[1] = sprite.position[1];
+    this.v1[0] = sprite.position[0] + sprite.size[0];
+    this.v1[1] = sprite.position[1];
+    this.v2[0] = sprite.position[0] + sprite.size[0];
+    this.v2[1] = sprite.position[1] + sprite.size[1];
+    this.v3[0] = sprite.position[0];
+    this.v3[1] = sprite.position[1] + sprite.size[1];
 
-    this.anchor[0] = sprite.drawRect.position[0] + sprite.drawRect.size[0] * sprite.anchor[0];
-    this.anchor[1] = sprite.drawRect.position[1] + sprite.drawRect.size[1] * sprite.anchor[1];
+    this.anchor[0] = sprite.position[0] + sprite.size[0] * sprite.anchor[0];
+    this.anchor[1] = sprite.position[1] + sprite.size[1] * sprite.anchor[1];
 
     if (sprite.rotation !== 0) {
       rotate(this.v0, this.v0, this.anchor, sprite.rotation);
@@ -179,6 +177,9 @@ export class SpriteRenderer implements Renderer {
   }
 
   end(gl: WebGL2RenderingContext): void {
+    if (this.instanceCount === 0) {
+      return;
+    }
     gl.bufferSubData(GL_ARRAY_BUFFER, 0, this.data);
     gl.uniform1i(this.shader['u_texture'], 2);
     gl.drawElements(GL_TRIANGLES, 6 * this.instanceCount, GL_UNSIGNED_SHORT, 0);

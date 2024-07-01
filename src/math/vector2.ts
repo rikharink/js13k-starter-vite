@@ -9,8 +9,7 @@ export function nearlyEqual(a: Vector2, b: Vector2, epsilon?: number): boolean {
   return !!(ne(a[0], b[0], epsilon) && ne(a[1], b[1], epsilon));
 }
 
-export function copy(out: Vector2, a?: Vector2): Vector2 | undefined {
-  if (!a) return;
+export function copy(out: Vector2, a: Vector2): Vector2 {
   out[0] = a[0];
   out[1] = a[1];
   return out;
@@ -135,6 +134,10 @@ export function randomPointOnUnitCircle(out: Vector2, rng: Random): Vector2 {
   return out;
 }
 
+export function signedAngle(a: Vector2, b: Vector2): Radian {
+  return Math.atan2(b[1], b[0]) - Math.atan2(a[1], a[0]);
+}
+
 export function angle(a: Vector2, b: Vector2): Radian {
   return Math.acos(dot(a, b) / (length(a) * length(b)));
 }
@@ -151,4 +154,13 @@ export function rotate(o: Vector2, a: Vector2, b: Vector2, r: Radian): Vector2 {
   o[1] = p0 * sinC + p1 * cosC + b[1];
 
   return o;
+}
+
+export function limit(vector: Vector2, max: number): Vector2 {
+  const l = length(vector);
+  if (l > max) {
+    vector[0] = (vector[0] / l) * max;
+    vector[1] = (vector[1] / l) * max;
+  }
+  return vector;
 }

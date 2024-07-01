@@ -1,8 +1,13 @@
-import { Vector2, add } from '../vector2';
+import { Vector2, add, scale } from '../vector2';
 import { AABB } from './aabb';
 export interface Rectangle {
   position: Vector2;
   size: Vector2;
+}
+
+export function center(rectangle: Rectangle): Vector2 {
+  const t: Vector2 = [0, 0];
+  return add(t, rectangle.position, scale(t, rectangle.size, 0.5));
 }
 
 export function pointInRectangle(point: Vector2, rectangle: Rectangle): boolean {

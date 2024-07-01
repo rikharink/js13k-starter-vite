@@ -25,6 +25,31 @@ function contribution2D(multiplier: number, xsb: number, ysb: number): Contribut
   };
 }
 
+export function makeOctaveNoise2D(
+  clientSeed: number,
+  octaves: number,
+  baseFrequency: number,
+  persistence: number = 0.5,
+): Noise2D {
+  const noise = makeNoise2D(clientSeed);
+  return (x: number, y: number): number => {
+    let total = 0;
+    let frequency = baseFrequency;
+    let amplitude = 1;
+    let maxValue = 0; // Used for normalizing the result
+
+    for (let i = 0; i < octaves; i++) {
+      total += noise(x * frequency, y * frequency) * amplitude;
+      maxValue += amplitude;
+      amplitude *= persistence;
+      frequency *= 2;
+    }
+
+    // Normalize the result to the range [-1, 1]
+    return total / maxValue;
+  };
+}
+
 export function makeNoise2D(clientSeed: number): Noise2D {
   const contributions: Contribution2D[] = [];
   for (let i = 0; i < p2D.length; i += 4) {

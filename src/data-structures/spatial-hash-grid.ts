@@ -67,7 +67,7 @@ export class SpatialHashGrid {
     this.insert(client);
   }
 
-  public findNear(boundingBox: AABB): Client[] {
+  public findNear(boundingBox: AABB, excludeEntities: number[] = []): Client[] {
     const [x, y] = boundingBox.min;
     const [w, h] = subtract([0, 0], boundingBox.max, boundingBox.min);
 
@@ -85,7 +85,7 @@ export class SpatialHashGrid {
           const v = head.value;
           head = head.next;
 
-          if (v.queryId != queryId) {
+          if (v.queryId != queryId && !excludeEntities.some((eid) => eid === v.entityId)) {
             v.queryId = queryId;
             clients.push(v);
           }

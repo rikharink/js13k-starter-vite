@@ -111,10 +111,12 @@ export function canvasToTexture(
   canvas: HTMLCanvasElement | OffscreenCanvas,
   texture: WebGLTexture,
   scaleNearest = false,
+  repeat = false,
 ): WebGLTexture {
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   gl.bindTexture(GL_TEXTURE_2D, texture);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);

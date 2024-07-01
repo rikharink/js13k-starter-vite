@@ -1,8 +1,26 @@
-import { Vector2 } from '../vector2';
+import { Vector2, add, scale, subtract } from '../vector2';
+import { Rectangle } from './rectangle';
 
 export interface AABB {
   min: Vector2;
   max: Vector2;
+}
+
+export function size(aabb: AABB): Vector2 {
+  return subtract([0, 0], aabb.max, aabb.min);
+}
+
+export function center(aabb: AABB): Vector2 {
+  const a = aabb.min;
+  const b = scale([0, 0], aabb.max, 0.5);
+  return add([0, 0], a, b);
+}
+
+export function toRectangle(aabb: AABB): Rectangle {
+  return {
+    position: aabb.min,
+    size: size(aabb),
+  };
 }
 
 export function intersects(a: AABB, b: AABB): boolean {

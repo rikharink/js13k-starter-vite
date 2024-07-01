@@ -17,6 +17,7 @@ import {
 } from '../rendering/gl-constants';
 import { Texture } from './texture';
 import { getWhiteNoise } from '../math/noise/whitenoise';
+import { Vector2 } from '../math/vector2';
 
 export function generateTextureFromData(
   gl: WebGL2RenderingContext,
@@ -76,4 +77,51 @@ export function generateRampTexture(gl: WebGL2RenderingContext, colors: RgbColor
 
 export function generateSolidTexture(gl: WebGL2RenderingContext, color: RgbColor): Texture {
   return generateRampTexture(gl, [color]);
+}
+
+interface TextOptions {
+  fillStyle: string;
+  fontSize: number;
+  fontFamily: string;
+}
+
+function textureFromCanvas(gl: WebGL2RenderingContext, canvas: OffscreenCanvas, size: Vector2): Texture {
+  const texture = gl.createTexture()!;
+  gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
+  gl.bindTexture(GL_TEXTURE_2D, texture);
+  gl.texImage2D(GL_TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  gl.texParameteri(GL_TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(GL_TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  gl.generateMipmap(GL_TEXTURE_2D);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return {
+    texture: texture,
+    size,
+    sourceRect: {
+      position: [0, 0],
+      size,
+    },
+  };
+}
+
+const textCanvas = new OffscreenCanvas(1, 1);
+const tctx = textCanvas.getContext('2d')!;
+export function generateTextureFromText(gl: WebGL2RenderingContext, text: string, textOptions: TextOptions): Texture {
+  tctx.font = `${textOptions.fontSize}px ${textOptions.fontFamily}`;
+  tctx.fillStyle = textOptions.fillStyle;
+  tctx.textAlign = 'left';
+  tctx.textBaseline = 'top';
+  const metrics = tctx.measureText(text);
+  const width = metrics.width;
+  const height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  textCanvas.width = width;
+  textCanvas.height = height;
+
+  tctx.font = `${textOptions.fontSize}px ${textOptions.fontFamily}`;
+  tctx.fillStyle = textOptions.fillStyle;
+  tctx.textAlign = 'left';
+  tctx.textBaseline = 'top';
+  tctx.fillText(text, 0, 0);
+
+  return textureFromCanvas(gl, textCanvas, [width, height - 1]);
 }

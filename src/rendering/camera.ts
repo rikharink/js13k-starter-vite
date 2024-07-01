@@ -1,5 +1,13 @@
 import { AABB } from '../math/geometry/aabb';
-import { Matrix4x4, create, fromRotationTranslationScaleOrigin, lookAt, multiply, ortho } from '../math/matrix4x4';
+import {
+  Matrix4x4,
+  create,
+  fromRotationTranslationScaleOrigin,
+  identity,
+  lookAt,
+  multiply,
+  ortho,
+} from '../math/matrix4x4';
 import { Noise2D, makeNoise2D } from '../math/noise/2d';
 import { Quaternion, from_axis } from '../math/quaternion';
 import { Vector2, add, mul, scale, subtract } from '../math/vector2';
@@ -7,13 +15,13 @@ import { Settings } from '../settings';
 import { Milliseconds, Radian } from '../types';
 
 export class Camera {
-  public translation: Vector2 = [0, 0];
   public rotation: Radian = 0;
   public scale: number = 1;
   public origin: Vector2;
   public wantedOrigin: Vector2;
   public followSpeed: Vector2 = [1, 1];
 
+  private _translation: Vector2 = [0, 0];
   private projection!: Matrix4x4;
   private view!: Matrix4x4;
   private m: Matrix4x4 = create();
@@ -30,10 +38,18 @@ export class Camera {
     this.noise = makeNoise2D(Settings.seed);
   }
 
+  public reset(): void {
+    identity(this.projectionViewMatrix);
+    this._translation[0] = 0;
+    this._translation[1] = 0;
+    this.origin = this.center;
+    this.wantedOrigin = [...this.origin];
+  }
+
   public get viewport(): AABB {
     return {
-      min: [this.translation[0], this.translation[1]],
-      max: [this.translation[0] + this.size[0] / this.scale, this.translation[1] + this.size[1] / this.scale],
+      min: [this._translation[0], this._translation[1]],
+      max: [this._translation[0] + this.size[0] / this.scale, this._translation[1] + this.size[1] / this.scale],
     };
   }
 
@@ -60,17 +76,18 @@ export class Camera {
     );
   }
 
-  public update(t: Milliseconds, shake: number) {
+  public tick(t: Milliseconds, shake: number) {
     const wanted: Vector2 = [...this.wantedOrigin];
     subtract(wanted, wanted, this.center);
     scale(wanted, wanted, -1);
 
-    //FIX ME: instant follow is broken
     add(
-      this.translation,
-      this.translation,
-      mul([0, 0], subtract([0, 0], wanted, this.translation), scale([0, 0], this.followSpeed, Settings.timeScale)),
+      this._translation,
+      this._translation,
+      mul([0, 0], subtract([0, 0], wanted, this._translation), scale([0, 0], this.followSpeed, Settings.timeScale)),
     );
+
+    //this.origin = this.center;
 
     this.projection = ortho(create(), 0, this.size[0], this.size[1], 0, -1, 1);
     this.view = lookAt(create(), [0, 0, 1], [0, 0, 0], [0, 1, 0]);
@@ -81,12 +98,16 @@ export class Camera {
       fromRotationTranslationScaleOrigin(
         this.m,
         from_axis(this.q, [0, 0, 1], this.rotation),
-        [...this.translation, 0],
+        [...this._translation, 0],
         [this.scale, this.scale, 1],
         [...this.origin, 0],
       ),
     );
 
     multiply(this.projectionViewMatrix, this.projection, this.view);
+  }
+
+  public get translation(): Vector2 {
+    return this._translation;
   }
 }

@@ -33,6 +33,31 @@ function contribution4D(multiplier: number, xsb: number, ysb: number, zsb: numbe
   };
 }
 
+export function makeOctaveNoise4D(
+  clientSeed: number,
+  octaves: number,
+  baseFrequency: number,
+  persistence: number = 0.5,
+): Noise4D {
+  const noise = makeNoise4D(clientSeed);
+  return (x: number, y: number, z: number, w: number): number => {
+    let total = 0;
+    let frequency = baseFrequency;
+    let amplitude = 1;
+    let maxValue = 0; // Used for normalizing the result
+
+    for (let i = 0; i < octaves; i++) {
+      total += noise(x * frequency, y * frequency, z * frequency, w * frequency) * amplitude;
+      maxValue += amplitude;
+      amplitude *= persistence;
+      frequency *= 2;
+    }
+
+    // Normalize the result to the range [-1, 1]
+    return total / maxValue;
+  };
+}
+
 export function makeNoise4D(clientSeed: number): Noise4D {
   const contributions: Contribution4D[] = [];
   for (let i = 0; i < p4D.length; i += 16) {

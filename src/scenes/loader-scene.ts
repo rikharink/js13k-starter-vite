@@ -1,3 +1,5 @@
+import { ResourceManager } from '../managers/resource-manager';
+import { SceneManager } from '../managers/scene-manager';
 import { AABB } from '../math/geometry/aabb';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
@@ -6,6 +8,7 @@ import { Percentage } from '../types';
 import { Scene } from './scene';
 
 export class LoaderScene implements Scene {
+  public sceneTime: number = 0;
   public name = 'loader';
   public sprites: Sprite[] = [];
   public bounds: AABB = {
@@ -29,6 +32,9 @@ export class LoaderScene implements Scene {
     this.canvas.style.position = 'absolute';
   }
 
+  public sceneManager!: SceneManager;
+  public resourceManager!: ResourceManager;
+
   public onPush(): void {
     this.running = true;
     document.getElementById('app')!.appendChild(this.canvas);
@@ -38,10 +44,12 @@ export class LoaderScene implements Scene {
   public onPop(): void {
     this.running = false;
     document.getElementById('app')!.removeChild(this.canvas);
+    console.debug(`Scene ${this.name} ran for ${this.sceneTime}ms`);
   }
 
   public loadLoop(now: number) {
     if (!this.running) return;
+    this.sceneTime = now;
     requestAnimationFrame(this.loadLoop.bind(this));
 
     const ctx = this.ctx;
@@ -73,5 +81,5 @@ export class LoaderScene implements Scene {
     ctx.fillRect(x, y, mw * s, mh);
   }
 
-  public tick(_camera: Camera): void {}
+  public tick(): void {}
 }
