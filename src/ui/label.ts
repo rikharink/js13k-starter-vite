@@ -26,7 +26,6 @@ export class Label implements UIElement {
 
   public set position(pos: Vector2) {
     this.sprites[0].position = pos;
-    console.log(this.position);
   }
 
   tick(): void {}

@@ -13,22 +13,18 @@ import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
-import { BaseScene } from './scenes/base-scene';
 import { ResourceManager, ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import { Passthrough } from './rendering/post-effects/passthrough';
 import { Vhs } from './rendering/post-effects/vhs';
-import { generateColorNoiseTexture, generateSolidTexture } from './textures/textures';
+import { generateColorNoiseTexture } from './textures/textures';
 import atlasTexture from './textures/atlas.png';
 import _atlas from './textures/atlas.json';
 import { Atlas } from './textures/atlas';
 import GUI from 'lil-gui';
 import noise from './textures/noise.svg';
-import { Camera } from './rendering/camera';
 import { TAU } from './math/const';
-import { PARISIAN_BLUE } from './palette';
 import { MainMenuScene } from './scenes/main-menu-scene';
-import { hexToRgb } from './math/color';
 const atlas = _atlas as Atlas;
 
 let lil;
@@ -54,7 +50,6 @@ export const keyboardManager = new KeyboardManager();
 export const gamepadManager = new GamepadManager();
 export const pointerManager = new PointerManager(canvas);
 
-const camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
 
 let isPaused = false;
 
@@ -70,8 +65,6 @@ new ResourceManagerBuilder()
   .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
   .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
-  .addProceduralTexture('bg', () => generateSolidTexture(gl, hexToRgb('#FFFFFF')!))
-  .addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1]))
   .addTextureAtlas(atlasTexture, atlas, true)
   .addSvgTexture('snoise', noise, false, true)
   .build(gl, sceneManager)
@@ -89,7 +82,6 @@ new ResourceManagerBuilder()
     if (import.meta.env.DEV) {
       const settings = gui.addFolder('settings');
       settings.add(Settings, 'fixedDeltaTime');
-      settings.addColor(Settings, 'clearColor');
       settings.add(Settings, 'timeScale', 0, 1);
 
       const pfx = gui.addFolder('postEffects');
@@ -107,18 +99,10 @@ new ResourceManagerBuilder()
       scene.add(sceneManager.currentScene, 'traumaDampening', 0, 1, 0.00001);
 
       const cameraGui = gui.addFolder('camera');
-      cameraGui.add(camera, 'scale', 0.01, 10, 0.01).name('zoom');
-      cameraGui.add(camera, 'rotation', 0, TAU);
+      cameraGui.add(sceneManager.currentScene.camera, 'scale', 0.01, 10, 0.01).name('zoom');
+      cameraGui.add(sceneManager.currentScene.camera, 'rotation', 0, TAU);
       cameraGui.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
       cameraGui.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
-      cameraGui.add(Settings, 'followCam').onChange((f: boolean) => {
-        if (!f) {
-          camera.followSpeed = [0.3, 0.3];
-          camera.wantedOrigin = camera.center;
-        } else {
-          camera.followSpeed = [0.1, 0.1];
-        }
-      });
 
       stats = new s.default();
       stats!.showPanel(0);
@@ -153,7 +137,7 @@ new ResourceManagerBuilder()
       _accumulator += dt;
       while (_accumulator >= Settings.fixedDeltaTime) {
         //FIXED STEP
-        sceneManager.currentScene.tick();
+        sceneManager.currentScene.fixedTick();
         sceneManager.currentScene.camera.tick(
           gameTime,
           sceneManager.currentScene.trauma * sceneManager.currentScene.trauma,
@@ -161,13 +145,13 @@ new ResourceManagerBuilder()
         gameTime += Settings.fixedDeltaTime;
         _accumulator -= Settings.fixedDeltaTime;
       }
-
       //VARIABLE STEP
 
       renderer.begin(gl);
       renderer.render(gl, sceneManager.currentScene, _accumulator / Settings.fixedDeltaTime, now);
       renderer.end(gl);
 
+      sceneManager.currentScene.variableTick();
       keyboardManager.tick();
       gamepadManager.tick();
       pointerManager.tick();

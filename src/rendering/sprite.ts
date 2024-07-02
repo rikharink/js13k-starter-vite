@@ -4,7 +4,6 @@ import { Texture } from '../textures/texture';
 import { Radian } from '../types';
 import { Rectangle } from '../math/geometry/rectangle';
 import { AABB } from '../math/geometry/aabb';
-import { TAU } from '../math/const';
 
 export class Sprite {
   id: number;
@@ -18,7 +17,6 @@ export class Sprite {
   anchor: Vector2 = [0.5, 0.5];
   flipx: boolean = false;
   flipy: boolean = false;
-  fov: Radian = TAU;
 
   private _collider: AABB;
 

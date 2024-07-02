@@ -5,12 +5,13 @@ import { clamp, range } from '../math/util';
 import { Vector2, add, reflect, scale } from '../math/vector2';
 import { Sprite } from '../rendering/sprite';
 import { Texture } from '../textures/texture';
-import { Scene } from './scene';
+import { Background, Scene } from './scene';
 import { Camera } from '../rendering/camera';
 import { ObjectPool } from '../data-structures/object-pool';
 import { AABB } from '../math/geometry/aabb';
 import { Settings } from '../settings';
 import { SceneManager } from '../managers/scene-manager';
+import { NormalizedRgbaColor } from '../math/color';
 
 const directions: Vector2[] = range(0, 3).map((i) => {
   let a = 0.7853982 + (i * Math.PI) / 2;
@@ -19,6 +20,7 @@ const directions: Vector2[] = range(0, 3).map((i) => {
 
 export class BaseScene implements Scene {
   public name = 'base scene';
+  public bg: Background = { type: 'color', color: [1, 1, 1, 1] as NormalizedRgbaColor };
   public camera: Camera;
   public sprites: Sprite[];
   public trauma: number = 0;
@@ -96,7 +98,12 @@ export class BaseScene implements Scene {
     reflect(sprite.velocity!, sprite.velocity!, r);
   }
 
-  public tick(): void {
+
+  public variableTick(): void {
+
+  }
+  
+  public fixedTick(): void {
     for (const sprite of this.sprites) {
       add(sprite.position, sprite.position, scale([0, 0], sprite.velocity, Settings.timeScale));
       let hitWall = 0;
@@ -132,5 +139,7 @@ export class BaseScene implements Scene {
         scale(this.camera.wantedOrigin, this.sprites[0].size, 0.5),
       );
     }
+
+    
   }
 }

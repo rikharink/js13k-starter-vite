@@ -1,10 +1,11 @@
 import { Vector2, add, copy } from '../math/vector2';
 import { Sprite } from '../rendering/sprite';
 import { gl, pointerManager, resourceManager } from '../game';
-import { HOLLOW_BROWN, KINGFISHER_GREY, RAFFIA_RIBBON } from '../palette';
 import { generateTextureFromText } from '../textures/textures';
 import { UIElement } from './ui-element';
 import { Texture } from '../textures/texture';
+import { rgbaString } from '../math/color';
+import { BASE01, BASE02, BASE05, BASE07 } from '../palette';
 
 type ButtonClickHandler = (btn: Button) => void;
 
@@ -26,7 +27,7 @@ export class Button implements UIElement {
     this.sprites.push(new Sprite(buttonId++, _size, position, texture));
     this.fg = generateTextureFromText(gl, text, {
       fontSize: fontSize,
-      fillStyle: '#ffffff',
+      fillStyle: rgbaString(BASE05, 255),
       fontFamily: 'monospace',
     });
     const pos: Vector2 = [...position];
@@ -51,7 +52,6 @@ export class Button implements UIElement {
       this._size[1] * 0.5 - this.fontSize * 0.5,
     ];
     copy(this.sprites[1].position, this.sprites[0].position);
-    console.log(this.sprites[1].position);
     add(this.sprites[1].position, this.sprites[1].position, textDisplacement);
   }
 
@@ -65,11 +65,11 @@ export class Button implements UIElement {
       this.onClick(this);
     }
     if (this.disabled) {
-      this.sprites[0].color = KINGFISHER_GREY;
+      this.sprites[0].color = BASE07;
     } else if (this.sprites[0].contains(pointerManager.getPointerLocation())) {
-      this.sprites[0].color = RAFFIA_RIBBON;
+      this.sprites[0].color = BASE02;
     } else {
-      this.sprites[0].color = HOLLOW_BROWN;
+      this.sprites[0].color = BASE01;
     }
   }
 }

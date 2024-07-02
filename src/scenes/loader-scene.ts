@@ -1,15 +1,18 @@
 import { ResourceManager } from '../managers/resource-manager';
 import { SceneManager } from '../managers/scene-manager';
+import { rgbaString } from '../math/color';
 import { AABB } from '../math/geometry/aabb';
+import { BASE00, BASE02, BASE05 } from '../palette';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
 import { Percentage } from '../types';
-import { Scene } from './scene';
+import { Background, Scene } from './scene';
 
 export class LoaderScene implements Scene {
-  public sceneTime: number = 0;
   public name = 'loader';
+  public sceneTime: number = 0;
+  public bg: Background = { type: 'color', color: [1, 1, 1, 1] };
   public sprites: Sprite[] = [];
   public bounds: AABB = {
     min: [0, 0],
@@ -53,7 +56,7 @@ export class LoaderScene implements Scene {
     requestAnimationFrame(this.loadLoop.bind(this));
 
     const ctx = this.ctx;
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = rgbaString(BASE00, 255);
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     if (now < Settings.minLoadingTimeMs) return;
@@ -62,7 +65,7 @@ export class LoaderScene implements Scene {
     const hh = this.canvas.height * 0.5;
 
     ctx.font = '72px sans-serif';
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = rgbaString(BASE05, 255);
     const text = 'LOADING...';
     const measure = ctx.measureText(text);
     const tx = hw - (measure.actualBoundingBoxRight - measure.actualBoundingBoxLeft) * 0.5;
@@ -75,11 +78,11 @@ export class LoaderScene implements Scene {
 
     const x = hw - mw * 0.5;
     const y = hh - mh * 0.5;
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = rgbaString(BASE05, 255);
     ctx.fillRect(x, y, mw, mh);
-    ctx.fillStyle = '#FF0000';
+    ctx.fillStyle = rgbaString(BASE02, 255);
     ctx.fillRect(x, y, mw * s, mh);
   }
 
-  public tick(): void {}
+  public fixedTick(): void {}
 }

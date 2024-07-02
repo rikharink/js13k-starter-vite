@@ -6,6 +6,9 @@ import { SceneManager } from './scene-manager';
 import { rng } from '../game';
 import { Texture } from '../textures/texture';
 import { Atlas } from '../textures/atlas';
+import { generateSolidTexture } from '../textures/textures';
+import { hexToRgb } from '../math/color';
+import { BACKGROUND } from '../palette';
 
 export class ResourceManager {
   public shaders: Map<string, Shader> = new Map();
@@ -78,7 +81,10 @@ export class ResourceManagerBuilder {
 
   public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
     const loaderScene = new LoaderScene();
-
+    this
+      .addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1]))
+      .addProceduralTexture('white', () => generateSolidTexture(gl, [255, 255, 255]));
+      
     sceneManager.pushScene(loaderScene);
     const total =
       this.shadersToLoad.length + this.imagesToLoad.length + this.texturesToGenerate.length + this.atlasToLoad.length;

@@ -7,10 +7,11 @@ import { Vector2 } from '../math/vector2';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
-import { Scene } from './scene';
+import { Background, Scene } from './scene';
 
 export class SettingsScene implements Scene {
   public name = 'Settings';
+  public bg: Background = { type: 'color', color: [1, 1, 1, 1] };
   public sprites: Sprite[] = [];
   public trauma: number = 1;
   public traumaDampening = 0.02;
@@ -38,13 +39,16 @@ export class SettingsScene implements Scene {
     console.debug(`Scene ${this.name} ran for ${this.sceneTime}ms`);
   }
 
-  tick(): void {
+  fixedTick(): void {   
+    this.sceneTime += Settings.fixedDeltaTime * Settings.timeScale;
+  }
+
+  variableTick(): void {
     if (keyboardManager.hasKeyUp('Escape')) {
       this.sceneManager.popScene();
     }
-    this.camera.tick(this.sceneTime, this.trauma * this.trauma);
+    
     this.trauma -= this.traumaDampening;
     this.trauma = sat(this.trauma);
-    this.sceneTime += Settings.fixedDeltaTime * Settings.timeScale;
   }
 }
