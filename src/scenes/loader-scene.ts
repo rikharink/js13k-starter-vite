@@ -85,4 +85,7 @@ export class LoaderScene implements Scene {
   }
 
   public fixedTick(): void {}
+
+  public variableTick(): void {}
+  
 }

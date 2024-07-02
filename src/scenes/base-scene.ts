@@ -48,7 +48,7 @@ export class BaseScene implements Scene {
     this.camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
     this.camera.followSpeed = [0.3, 0.3];
     this.spritePool = new ObjectPool<Sprite>(1000, this.newSprite.bind(this), this.resetSprite.bind(this));
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10000; i++) {
       this.sprites.push(this.spritePool.get());
     }
   }
@@ -98,9 +98,17 @@ export class BaseScene implements Scene {
     reflect(sprite.velocity!, sprite.velocity!, r);
   }
 
-
   public variableTick(): void {
-
+    if (Settings.followCam) {
+      add(
+        this.camera.wantedOrigin,
+        this.sprites[0].position,
+        scale(this.camera.wantedOrigin, this.sprites[0].size, 0.5),
+      );
+    }
+    this.trauma -= this.traumaDampening;
+    this.trauma = clamp(0, 1, this.trauma);
+    this.sprites[0].color = [1, 0, 0];
   }
   
   public fixedTick(): void {
@@ -127,19 +135,7 @@ export class BaseScene implements Scene {
       if (hitWall === 2) {
         this.sprites.push(this.spritePool.get());
       }
-      this.trauma -= this.traumaDampening;
-      this.trauma = clamp(0, 1, this.trauma);
-    }
-
-    this.sprites[0].color = [1, 0, 0];
-    if (Settings.followCam) {
-      add(
-        this.camera.wantedOrigin,
-        this.sprites[0].position,
-        scale(this.camera.wantedOrigin, this.sprites[0].size, 0.5),
-      );
-    }
-
-    
+     
+    }    
   }
 }
