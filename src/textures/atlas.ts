@@ -1,4 +1,10 @@
 import { Vector2 } from '../math/vector2';
+import { Texture } from './texture';
+
+export interface TextureAtlas {
+  atlas: Atlas;
+  texture: Texture;
+}
 
 export interface Atlas {
   textures: AtlasTexture[];

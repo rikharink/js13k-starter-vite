@@ -15,7 +15,7 @@ export class ColorCorrection extends PostEffect {
 
   public constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
     super('color correction', gl, resourceManager.shaders.get('post')!);
-    super.isEnabled = true;
+    this.isEnabled = true;
   }
 
   public apply(gl: WebGL2RenderingContext, input: Framebuffer, time: Seconds): Framebuffer | null {

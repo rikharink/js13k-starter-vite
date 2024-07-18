@@ -1,5 +1,5 @@
 {
-  "u_mvpMatrix": "m",
+  "u_mvpMatrix": "mvp",
   "u_textureMatrix": "t",
   "u_blend": "b",
   "u_atlas": "a",
@@ -9,9 +9,8 @@
   "a_uv": "u",
   "f_color": "c",
   "v_uv": "v",
-  "v_color": "vco",
-  "a_color": "vca",
-  "u_buffer": "f",
+  "v_color": "vc",
+  "a_color": "ac",
   "u_noise": "n",
   "u_time": "s",
   "u_bend": "be",

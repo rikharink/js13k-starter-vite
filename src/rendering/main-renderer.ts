@@ -45,7 +45,7 @@ export class MainRenderer implements Renderer {
     gl.uniformMatrix4fv(this.bgShader['u_colorMatrix'], false, create());
     gl.uniform4f(this.bgShader['u_offset'], 0, 0, 0, 1);
     gl.uniform4f(this.bgShader['u_colorFilter'], clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-    gl.uniform1i(this.bgShader['u_buffer'], 0);
+    gl.uniform1i(this.bgShader['u_texture'], 0);
     gl.drawArrays(GL_TRIANGLES, 0, 3);
 
     this.spriteRenderer.begin(gl, scene.camera);

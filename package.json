@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "tools": "basic-http-server ./tools",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",

@@ -1,4 +1,4 @@
-import { initShaderProgram, loadTexture } from '../rendering/gl-util';
+import { canvasToTexture, createTexture, initShaderProgram, loadTexture } from '../rendering/gl-util';
 import { PostEffect } from '../rendering/post-effects/post-effect';
 import { Shader } from '../rendering/shaders/shader';
 import { LoaderScene } from '../scenes/loader-scene';
@@ -7,12 +7,13 @@ import { rng } from '../game';
 import { Texture } from '../textures/texture';
 import { Atlas } from '../textures/atlas';
 import { generateSolidTexture } from '../textures/textures';
-import { hexToRgb } from '../math/color';
-import { BACKGROUND } from '../palette';
+import { TTTexture, ttt } from '../textures/ttt';
+import { TTTileMap, TTTileMapExport } from '../rendering/tttile-map';
 
 export class ResourceManager {
   public shaders: Map<string, Shader> = new Map();
   public textures: Map<string, Texture> = new Map();
+  public tilemaps: Map<string, TTTileMap> = new Map();
   private postEffects: Map<string, [number, PostEffect]> = new Map();
   private postEffectIndex: number = 0;
 
@@ -40,8 +41,16 @@ export class ResourceManager {
 type ShaderToLoad = [key: string, vert: string, frag: string];
 type ImageToLoad = [key: string, uri: string, scaleNearest: boolean, repeat: boolean];
 type AtlasToLoad = [uri: string, atlas: Atlas, scaleNearest: boolean];
+type TTTToLoad = [
+  keys: string[],
+  data: TTTexture[],
+  gl: WebGL2RenderingContext,
+  scaleNearest: boolean,
+  repeat: boolean,
+];
+
 type TextureToGenerate = [key: string, generator: TextureGenerator];
-type TextureGenerator = () => Texture;
+type TextureGenerator = (gl: WebGL2RenderingContext) => Texture;
 
 export class ResourceManagerBuilder {
   private mgr = new ResourceManager();
@@ -49,6 +58,8 @@ export class ResourceManagerBuilder {
   private imagesToLoad: ImageToLoad[] = [];
   private atlasToLoad: AtlasToLoad[] = [];
   private texturesToGenerate: TextureToGenerate[] = [];
+  private tttToLoad: TTTToLoad[] = [];
+  private tttTileMapsToGenerate: [string, TTTileMapExport, TTTexture[]][] = [];
 
   public addShader(key: string, vert: string, frag: string): ResourceManagerBuilder {
     this.shadersToLoad.push([key, vert, frag]);
@@ -58,6 +69,33 @@ export class ResourceManagerBuilder {
   public addTexture(key: string, uri: string, scaleNearest = false, repeat = false): ResourceManagerBuilder {
     this.imagesToLoad.push([key, uri, scaleNearest, repeat]);
     return this;
+  }
+
+  public addTTTTexture(
+    key: string,
+    tttexture: TTTexture,
+    gl: WebGL2RenderingContext,
+    scaleNearest = false,
+    repeat = false,
+  ): ResourceManagerBuilder {
+    this.addTTTTextures([key], [tttexture], gl, scaleNearest, repeat);
+    return this;
+  }
+
+  public addTTTTextures(
+    keys: string[],
+    tttextures: TTTexture[],
+    gl: WebGL2RenderingContext,
+    scaleNearest = false,
+    repeat = false,
+  ): ResourceManagerBuilder {
+    console.assert(keys.length === tttextures.length, 'keys and tttextures must have the same length');
+    this.tttToLoad.push([keys, tttextures, gl, scaleNearest, repeat]);
+    return this;
+  }
+
+  public addTTTileMap(key: string, tilemap: TTTileMapExport, textures: TTTexture[]) {
+    this.tttTileMapsToGenerate.push([key, tilemap, textures]);
   }
 
   public addTextureAtlas(uri: string, atlas: Atlas, scaleNearest = false): ResourceManagerBuilder {
@@ -81,13 +119,18 @@ export class ResourceManagerBuilder {
 
   public build(gl: WebGL2RenderingContext, sceneManager: SceneManager): Promise<ResourceManager> {
     const loaderScene = new LoaderScene();
-    this
-      .addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1]))
-      .addProceduralTexture('white', () => generateSolidTexture(gl, [255, 255, 255]));
-      
+    this.addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1])).addProceduralTexture('white', () =>
+      generateSolidTexture(gl, [255, 255, 255]),
+    );
+
     sceneManager.pushScene(loaderScene);
     const total =
-      this.shadersToLoad.length + this.imagesToLoad.length + this.texturesToGenerate.length + this.atlasToLoad.length;
+      this.shadersToLoad.length +
+      this.imagesToLoad.length +
+      this.texturesToGenerate.length +
+      this.atlasToLoad.length +
+      this.tttToLoad.length +
+      this.tttTileMapsToGenerate.length;
     let progress = 0;
 
     function incrementProgress() {
@@ -115,7 +158,25 @@ export class ResourceManagerBuilder {
     }
 
     for (const [key, generator] of this.texturesToGenerate) {
-      this.mgr.textures.set(key, generator());
+      this.mgr.textures.set(key, generator(gl));
+      incrementProgress();
+    }
+
+    for (const [key, tilemap, textures] of this.tttTileMapsToGenerate) {
+      const tttTextures = ttt(textures);
+
+      incrementProgress();
+    }
+
+    for (const [keys, tttextures, gl, scaleNearest, repeat] of this.tttToLoad) {
+      const textures = ttt(tttextures).map((t: HTMLCanvasElement) =>
+        canvasToTexture(gl, t, createTexture(gl, [t.width, t.height]), scaleNearest, repeat),
+      );
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const texture = textures[i];
+        this.mgr.textures.set(key, texture);
+      }
       incrementProgress();
     }
 

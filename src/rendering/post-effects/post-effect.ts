@@ -20,7 +20,7 @@ export abstract class PostEffect {
   protected render(gl: WebGL2RenderingContext, input: Framebuffer, time: Milliseconds) {
     gl.activeTexture(GL_TEXTURE0);
     gl.bindTexture(GL_TEXTURE_2D, input.texture);
-    gl.uniform1i(this.shader['u_buffer'], 0);
+    gl.uniform1i(this.shader['u_texture'], 0);
     gl.bindFramebuffer(GL_FRAMEBUFFER, this.output?.buffer ?? null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.uniform1f(this.shader['u_time'], time / 1000);

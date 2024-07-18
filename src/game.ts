@@ -3,8 +3,6 @@ import spriteVert from './rendering/shaders/sprite.vert';
 import spriteFrag from './rendering/shaders/sprite.frag';
 import postVert from './rendering/shaders/post.vert';
 import postFrag from './rendering/shaders/post.frag';
-import vhsFrag from './rendering/shaders/vhs.frag';
-
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
 import { MainRenderer } from './rendering/main-renderer';
@@ -16,16 +14,9 @@ import { AudioSystem } from './audio/audio-system';
 import { ResourceManager, ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import { Passthrough } from './rendering/post-effects/passthrough';
-import { Vhs } from './rendering/post-effects/vhs';
-import { generateColorNoiseTexture } from './textures/textures';
-import atlasTexture from './textures/atlas.png';
-import _atlas from './textures/atlas.json';
-import { Atlas } from './textures/atlas';
 import GUI from 'lil-gui';
-import noise from './textures/noise.svg';
 import { TAU } from './math/const';
 import { MainMenuScene } from './scenes/main-menu-scene';
-const atlas = _atlas as Atlas;
 
 let lil;
 let gui: GUI;
@@ -50,7 +41,6 @@ export const keyboardManager = new KeyboardManager();
 export const gamepadManager = new GamepadManager();
 export const pointerManager = new PointerManager(canvas);
 
-
 let isPaused = false;
 
 export const rng = getRandom('JS13K2023');
@@ -62,16 +52,12 @@ export let resourceManager: ResourceManager;
 
 new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
-  .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
-  .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
-  .addTextureAtlas(atlasTexture, atlas, true)
-  .addSvgTexture('snoise', noise, false, true)
+  .addTTTTexture('snake', [32,32,65295,3,-6,27,65535,0,32,"🐍"], gl)
   .build(gl, sceneManager)
   .then((rm) => {
     resourceManager = rm;
     rm
-      .addPostEffect('vhs', new Vhs(gl, resourceManager))
       .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
       .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
@@ -86,8 +72,6 @@ new ResourceManagerBuilder()
 
       const pfx = gui.addFolder('postEffects');
       pfx.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
-      pfx.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
-      pfx.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
       pfx.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
       pfx.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
       pfx.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);

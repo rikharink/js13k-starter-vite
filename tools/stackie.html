@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='utf-8'>
+  <script src="stackie.js"></script>
+  <style>
+  .meep {
+  height : 336px;
+  position:relative;
+  border: 1px solid green;
+}
+
+.box {
+  position:absolute;
+  width: 100px;
+  height:278px;
+}
+.left {
+  width:256px;
+}
+.left>canvas {
+	position:absolute;
+  top:24px;
+}
+#imageurl {
+	position:absolute;
+	bottom:100%;
+}
+.right {
+  height:332px;
+  width:400px;
+  right:0px;
+  overflow:auto;
+}
+.control {
+  left:280px;
+}
+.middle {
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height:23px;
+  right:400px;
+  left:400px;
+  width:auto;  
+  overflow:auto;
+}
+.middle>ul {
+  padding:1px;
+  margin: 0 auto;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  columns: 2;
+
+}
+.middle>ul>li {
+  display:block;
+  vertical-align:top;
+}
+
+.codelines {
+  position: absolute;
+  right: 404px;
+  left: 0px;
+  width:auto;
+  top : 282px;
+  height : 50px;
+}
+
+.image.code {
+  width:90%;
+  margin-bottom:5px;
+}
+
+.palette.code {
+}
+
+.opcode {
+  font-size: 22px;
+  font-family: monospace;
+  font-weight:bold;
+}
+
+#examples {
+  width:500px;
+  font-family : monospace;
+  font-size : 14px;
+  margin-left:10px;
+  line-height: 18px;
+}
+button {
+  position:absolute;
+  left:0px;
+  right:0px;
+  width:100%;
+}
+button.palette {
+  top:0px;
+}
+button.image {
+  bottom:0px;
+}
+button.seed {
+  top:130px;
+}
+
+#seed {
+  position:absolute;
+  left:10px;
+  width:60px;
+  top:100px;
+  text-align:right;
+}
+    .pl-k {
+      color: #c00;
+    }
+    .pl-c1 {
+      color: #33c;
+    }
+    .pl-s {
+      color: #008;
+    }
+    .tips {
+      background-color:#efe;
+      overflow: auto;
+      border: 1px solid black;
+      margin-top:40px;
+      margin-left:20%;
+      margin-right:20%;
+    }
+    .tips>h3 {
+    	text-align: center;
+    }
+   </style>
+  </head>
+  <body>
+  <div class="github">
+    <a href="https://github.com/Lerc/stackie"> Source on GitHub</a>
+  </div>
+  <h2>
+  Stackie - tiny, somewhat slow, texture maker.
+  </h2>
+<div class="meep">
+
+  <div class="box left">
+    <div id="imageurl"></div>
+    <button onclick="generateLink()">Generate link for this image</button>
+    <canvas id="imageout" width=256 height=256></canvas></div>
+  <div class="box control">
+    <button class="image" onclick="generateImage()">Generate</button>
+    <button class="palette" onclick="generatePaletteImage()">Show Palette as Image</button>
+    <input id="seed" value=65></input>
+    <button class="seed" onclick="randomize()">Random Seed</button>
+  </div>
+  <div class="box middle">
+        <ul>
+          <li> <span class="opcode">x</span> : push x (x is in range 0...1) </li>
+      <li> <span class="opcode">y</span> : push y (y is in range 0...1) </li>
+      <li> <span class="opcode">0⋯9</span> : push constant 0...9 </li>
+      <li> <span class="opcode">d</span> : duplicate top of stack </li>
+      <li> <span class="opcode">:</span> : swap 1 and 2 on stack </li>
+      <li> <span class="opcode">;</span> : swap 1 and 3 on stack </li>
+      <li>  <span class="opcode">+ - * /</span> : add, subtract, multiply, and  divide </li>
+      <li>  <span class="opcode">#</span> : round to nearest int </li>
+      <li>  <span class="opcode">$</span> : floor  </li>
+      <li>  <span class="opcode">s c q l</span> : sin, cos, sqrt, log</li>
+      <li>  <span class="opcode">e</span> : SmootherStep easing </li>
+          
+      <li>  <span class="opcode">P</span> : push PI </li>
+      <li>  <span class="opcode">p</span> : perlin noise (using top two stack values) </li>
+      <li>  <span class="opcode">w</span> : wrapping perlin( 3 stack values x*w,y,w) </li>
+      <li>  <span class="opcode">W</span> : wrapping perlin( 4 stack values x*wx,y*wy,wx,wy) </li>
+      <li>  <span class="opcode">a</span> : atan2</li>
+      <li> <span class="opcode">~</span> : abs </li>
+      <li> <span class="opcode">^</span> : pow </li>
+      <li> <span class="opcode">!</span> : push(1-pop()) </li>
+      <li> <span class="opcode">?</span> : push(0=>pop()0?0:1) </li>
+
+      <li> <span class="opcode">&gt &lt</span> : max, min </li>
+      <li> <span class="opcode">%</span> : mod   (positve result mod)   </li>
+      </ul>
+  </div>
+  <div class="box right">
+      <div>
+      <div id="examples">
+      <div>Examples</div>
+      <a href="?code=xy*"> xy*</a><br>      
+      <a href="?code=x1x-*5*">x1x-*5*</a><br>      
+      <a href="?code=112%2Fx-d*-112%2Fy-d*-*">112/x-d*-112/y-d*-*</a><br>      
+      <a href="?code=x1x-*y1y-*%2B12%2F%2Bd*x%2B">x1x-*y1y-*+12/+d*x+</a><br>      
+      <a href="?code=xy882**w12%2F%2B">xy882**w12/+</a><br>      
+      <a href="?code=x1x-*5*dx4**y3*p%2By!-">x1x-*5*dx4**y3*p+y!-</a><br>      
+      <a href="?code=x12%2F-d*y12%2F-d*%2Bx88**s12%2F*12%2F%2By*%2B">x12/-d*y12/-d*+x88**s12/*12/+y*+</a><br>      
+      <a href="?code=xx*1x-d*%2Byy*1y-d*%2B*x88**sy88**s%2B*">xx*1x-d*+yy*1y-d*+*x88**sy88**s+*</a><br>      
+      <a href="?code=x8*y8*p1%2B2%2Fx2*y2*p%2Bx28**y28**p4%2F%2B">x8*y8*p1+2/x2*y2*p+x28**y28**p4/+</a><br>      
+      <a href="?code=xy*d!*14%2F%2B2*5%5Ex12%2F-y12%2F-a6%2Bx12%2F-d*y12%2F-d*%2B88**p*">xy*d!*14/+2*5^x12/-y12/-a6+x12/-d*y12/-d*+88**p*</a><br>      
+      <a href="?code=x8*y8*p1%2B2%2Fx2*y2*p%2Bx28**y28**p4%2F%2B112%2Fx-d*-112%2Fy-d*-*d*d*d*d**">x8*y8*p1+2/x2*y2*p+x28**y28**p4/+112/x-d*-112/y-d*-*d*d*d*d**</a><br>      
+      <a href="?code=x12%2F-y12%2F-a6%2Bx12%2F-d*y12%2F-d*%2B88**p">x12/-y12/-a6+x12/-d*y12/-d*+88**p</a><br>      
+      <a href="?code=x12%2F-y12%2F-aP%2F1%2B2%2Fx12%2F-d*y12%2F-d*%2Bq88*82*W14%2F%2B12%2Fx-d*12%2Fy-d*%2B!3^e*e~qe&palette=x8^xy-d%3F*~%2B">x12/-y12/-aP/1+2/ x12/-d*y12/-d*+q 88*82*W14/+ 12/x-d*12/y-d*+!3^e*e~qe</a><br>      
+      <a href="?code=x12/-y12/-:d;d;aP/1+2/;:d*:d*+qq482*W12/+">x12/-y12/-:d;d;aP/1+2/;:d*:d*+qq482*W12/+</a><br>      
+    </div>
+    </div>
+  </div>
+  <div class="codelines box">
+    <div><input id="imagecode" class="image code" value="xy*">Image code </input></div>
+    <input id="palettecode" class="palette code" value="x">Palette Code </input>
+  </div>
+</div>
+
+<div class="tips">
+<h3> This is how you use it in a program </h3>
+<div class="highlight highlight-javascript"><pre>  <span class="pl-c">//make a field and fill it</span>
+  <span class="pl-k">var</span> f<span class="pl-k">=</span>Stackie.<span class="pl-c1">makeField</span>(<span class="pl-c1">256</span>,<span class="pl-c1">256</span>);
+  f.<span class="pl-c1">generate</span>(Stackie.<span class="pl-c1">program</span>(<span class="pl-s"><span class="pl-pds">"</span>x8*y8*p1+2/x2*y2*p+x28**y28**p4/+112/x-d*-112/y-d*-*d*d*d*d**<span class="pl-pds">"</span></span>));
+  <span class="pl-k">var</span> smoke <span class="pl-k">=</span> f.<span class="pl-c1">getImageData</span>();
+
+  <span class="pl-c">//shorthand approach.  Just give me the ImageData. </span>
+  <span class="pl-k">var</span> flame<span class="pl-k">=</span>Stackie.<span class="pl-c1">generate</span>(<span class="pl-s"><span class="pl-pds">"</span>x1x-*5*dx4**y3*p+y!-<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>xy!1+*<span class="pl-pds">"</span></span>);
+  canvas_ctx.<span class="pl-c1">putImageData</span>(image,<span class="pl-c1">0</span>,<span class="pl-c1">0</span>); </pre></div>
+</div>
+<script>
+var canvas = document.getElementById("imageout");
+var seedInput =  document.getElementById("seed");
+var imageURL =  document.getElementById("imageurl");
+
+var imageCode ="x";
+var paletteCode ="x";
+var randSeed = 476; 
+var imageCodeInput =  document.getElementById("imagecode");
+var paletteCodeInput =  document.getElementById("palettecode");
+
+var ctx=canvas.getContext("2d");
+
+
+imageCodeInput.addEventListener("keydown",handleKeyDown);
+paletteCodeInput.addEventListener("keydown",handleKeyDown);
+seed.addEventListener("keydown",handleKeyDown);
+
+function handleKeyDown(e) {
+	if (e.keyCode === 13) {
+		generateImage();
+	}
+}
+function generateLink() {
+  var base = location.protocol+"//"+location.host+location.pathname;
+  var url= base+"?code="+encodeURIComponent(imageCode)+"&palette="+encodeURIComponent(paletteCode)+"&seed="+encodeURIComponent(randSeed)
+   //alert();
+   imageURL.innerHTML='<a href="'+url+'">[Image Link]</a>';
+}
+
+function generateImage() {
+	var img=imageCodeInput.value.replace(/\s/g, "");
+	var pal=paletteCodeInput.value.replace(/\s/g, "");
+	var seed=parseInt(seedInput.value);
+  if (seed !== randSeed) Stackie.setSeed(seed);
+  
+	var image= Stackie.generate(img,pal);
+	ctx.putImageData(image,0,0);
+	imageCode=img;
+	paletteCode=pal;
+	randSeed=seed;
+}
+
+function generatePaletteImage() {
+	var pal=paletteCodeInput.value.replace(/\s/g, "");
+	var image= Stackie.generate(pal,"x");
+	ctx.putImageData(image,0,0); 
+}
+
+function randomize() {
+   var newValue = Math.floor(Math.random()*0xfffff);
+   seedInput.value=newValue;
+   generateImage();
+}
+
+function getQueryVariable(variable)
+    {
+       var query = window.location.search.substring(1);
+       var vars = query.split("&");
+       for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if(pair[0] == variable){return pair[1];}
+       }
+       return(false);
+}
+
+
+	var queryCode = getQueryVariable("code");
+  var queryPalette = getQueryVariable("palette");
+  var querySeed = getQueryVariable("seed");
+
+
+  if (queryPalette)  { 
+    paletteCodeInput.value=decodeURIComponent(queryPalette);      
+  }
+
+  if (querySeed)  { 
+    seedInput.value=decodeURIComponent(querySeed);      
+  }
+
+  if (queryCode)  { 
+    imageCodeInput.value=decodeURIComponent(queryCode);
+  }
+  generateImage();      
+
+</script>
+
+  </body>
+</html>

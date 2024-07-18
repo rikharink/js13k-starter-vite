@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tiny Texture Tumbler Mapper</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        padding: 0;
+        margin: 0;
+        font-family: sans-serif;
+        background-color: indigo;
+        height: 100%;
+      }
+
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      #texture-preview {
+        display: grid;
+        grid-template-columns: repeat(8, 32px);
+        gap: 4px;
+        padding: 4px;
+      }
+
+      #tilemap {
+        display: grid;
+        overflow: scroll;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 30% 70%;
+        grid-template-rows: 1fr;
+        padding: 4px;
+        height: 100%;
+        max-width: 100svi;
+      }
+
+      .left {
+        background: white;
+      }
+
+      .right {
+        background: rgba(248, 248, 255, 0.682);
+      }
+
+      .size {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tile {
+        width: 32px;
+        height: 32px;
+        border-top: 4px solid black;
+        border-left: 4px solid black;
+      }
+
+      .tile:hover {
+        background: pink;
+      }
+
+      .texture:hover {
+        border: 2px solid black;
+      }
+
+      .design {
+        display: grid;
+        place-items: center;
+        height: 100%;
+      }
+
+      .selected {
+        border: 1px solid black;
+      }
+
+      .flip-x {
+        transform: scaleX(-1);
+      }
+
+      .flip-y {
+        transform: scaleY(-1);
+      }
+
+      .flip-xy {
+        transform: scaleX(-1) scaleY(-1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="split">
+      <div class="left">
+        <input type="text" id="textures" placeholder="tttextures" />
+        <div id="texture-preview"></div>
+      </div>
+      <div class="right">
+        <div class="size">
+          <input type="number" id="width" placeholder="width" min="1" value="28" />
+          <input type="number" id="height" placeholder="height" min="1" value="20" />
+        </div>
+        <div class="design">
+          <div id="tilemap"></div>
+        </div>
+        <input type="text" id="output" placeholder="" />
+      </div>
+    </div>
+
+    <script type="text/javascript" src="ttt.js"></script>
+    <script type="text/javascript">
+      const texturesInput = document.getElementById('textures');
+      const widthInput = document.getElementById('width');
+      const heightInput = document.getElementById('height');
+      const texturePreview = document.getElementById('texture-preview');
+      const tilemapPreview = document.getElementById('tilemap');
+      const output = document.getElementById('output');
+
+      const NOT_SOLID = 0;
+      const SOLID_TOP = 1;
+      const SOLID_RIGHT = 2;
+      const SOLID_BOTTOM = 4;
+      const SOLID_LEFT = 8;
+      const SOLID = SOLID_TOP | SOLID_RIGHT | SOLID_BOTTOM | SOLID_LEFT;
+
+      let w = parseInt(widthInput.value);
+      let h = parseInt(heightInput.value);
+
+      let selectedTexture = 0;
+      let selectedTile = 0;
+
+      let tiles = [];
+      let tilemap = [];
+      tilemap[0] = [w, h];
+      updateTilemapPreview();
+      updateTextures();
+
+      document.addEventListener('keyup', (e) => {
+        console.info(e.key);
+        if (e.key === 'Delete') {
+          if (selectedTile === undefined) return;
+          let tile = tilemapPreview.querySelector(`[data-index="${selectedTile}"]`);
+          tile.style.backgroundImage = '';
+          tilemap[selectedTile] = null;
+          updateOutput();
+        }
+        if (e.key === 'r') {
+          if (selectedTile === undefined) return;
+          let tile = tilemapPreview.querySelector(`[data-index="${selectedTile}"]`);
+          if (
+            !tile.classList.contains('flip-x') &&
+            !tile.classList.contains('flip-y') &&
+            !tile.classList.contains('flip-xy')
+          ) {
+            let [textureIndex, _flipX, _flipY, solid] = tilemap[selectedTile];
+            tilemap[selectedTile] = [textureIndex, 1, 0, solid];
+            tile.classList.add('flip-x');
+          } else if (tile.classList.contains('flip-x')) {
+            let [textureIndex, _flipX, _flipY, solid] = tilemap[selectedTile];
+            tilemap[selectedTile] = [textureIndex, 1, 1, solid];
+            tile.classList.remove('flip-x');
+            tile.classList.add('flip-xy');
+          } else if (tile.classList.contains('flip-xy')) {
+            let [textureIndex, _flipX, _flipY, solid] = tilemap[selectedTile];
+            tilemap[selectedTile] = [textureIndex, 0, 1, solid];
+            tile.classList.remove('flip-xy');
+            tile.classList.add('flip-y');
+          } else if (tile.classList.contains('flip-y')) {
+            let [textureIndex, _flipX, _flipY, solid] = tilemap[selectedTile];
+            tilemap[selectedTile] = [textureIndex, 0, 0, solid];
+            tile.classList.remove('flip-y');
+          }
+          updateOutput();
+        }
+      });
+
+      widthInput.addEventListener('input', () => {
+        w = parseInt(widthInput.value);
+        updateTilemapPreview();
+      });
+
+      heightInput.addEventListener('input', () => {
+        h = parseInt(heightInput.value);
+        updateTilemapPreview();
+      });
+
+      texturesInput.addEventListener('input', updateTextures);
+
+      function updateOutput() {
+        const serializedTilemap = JSON.stringify(tilemap);
+        output.value = serializedTilemap;
+      }
+
+      function updateTextures() {
+        try {
+          const tttm = JSON.parse(texturesInput.value);
+          tiles = ttt(tttm);
+          texturePreview.innerHTML = '';
+          tiles.map((t, i) => {
+            t.setAttribute('data-texture-index', i);
+            t.classList.add('texture');
+            if (i === selectedTexture) {
+              t.classList.add('selected');
+            } else {
+              t.classList.remove('selected');
+            }
+            texturePreview.appendChild(t);
+
+            t.addEventListener('click', () => {
+              selectedTexture = i;
+              tiles.map((t, j) => {
+                if (j === selectedTexture) {
+                  t.classList.add('selected');
+                } else {
+                  t.classList.remove('selected');
+                }
+              });
+            });
+          });
+          updateTilemapPreview();
+        } catch {
+          console.error('Invalid ttt textures');
+        }
+      }
+
+      function updateTilemapPreview() {
+        tilemapPreview.style.gridTemplateColumns = `repeat(${w}, 32px)`;
+        tilemapPreview.style.gridTemplateRows = `repeat(${h}, 32px)`;
+        tilemapPreview.innerHTML = '';
+
+        for (let i = 1; i < w * h + 1; i++) {
+          const tile = document.createElement('div');
+          if (!tilemap[i]) {
+            tile.style.backgroundImage = '';
+            tile.classList.remove('flip-x', 'flip-y', 'flip-xy');
+          } else {
+            let [textureIndex, flipX, flipY] = tilemap[i];
+            tile.style.backgroundImage = `url(${tiles[textureIndex].toDataURL()})`;
+            if (flipX && flipY) {
+              tile.classList.add('flip-xy');
+            } else if (flipX) {
+              tile.classList.add('flip-x');
+            } else if (flipY) {
+              tile.classList.add('flip-y');
+            }
+          }
+
+          tile.setAttribute('data-index', i);
+          tile.classList.add('tile');
+          tilemapPreview.appendChild(tile);
+          tile.addEventListener('click', () => {
+            tilemap[i] = [selectedTexture, 0, 0, SOLID];
+            tile.style.backgroundImage = `url(${tiles[selectedTexture].toDataURL()})`;
+            updateOutput();
+          });
+          tile.addEventListener('mouseover', () => {
+            selectedTile = i;
+          });
+          tile.addEventListener('mouseleave', () => {
+            selectedTile = undefined;
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

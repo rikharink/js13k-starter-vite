@@ -24,7 +24,7 @@ SOFTWARE.
 // Compress with:
 // uglifyjs ttt.js --compress --screw-ie8 --mangle toplevel -o ttt.min.js
 
-export const ttt=(td, only_this_index=-1,stack_depth=0) => {
+ttt=(td, only_this_index=-1,stack_depth=0) => {
 
 	let M=Math;
   let intHash = x => {

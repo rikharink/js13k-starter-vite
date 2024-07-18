@@ -29,6 +29,7 @@ import {
 } from './gl-constants';
 import { Shader } from './shaders/shader';
 import { Texture } from '../textures/texture';
+import { Atlas } from '../textures/atlas';
 
 export function initShaderProgram(gl: WebGL2RenderingContext, vertexSource: string, fragSource: string): Shader | null {
   const vertexShader = loadShader(gl, GL_VERTEX_SHADER, vertexSource)!;
@@ -106,13 +107,21 @@ export function createTexture(gl: WebGL2RenderingContext, size: Vector2): WebGLT
   return texture;
 }
 
+export function canvassesToTextureAtlas(
+  gl: WebGL2RenderingContext,
+  canvasses: (HTMLCanvasElement | OffscreenCanvas)[],
+): TextureAtlas {
+  let sizes = canvasses.map((c) => [c.width, c.height] as Vector2);
+  
+}
+
 export function canvasToTexture(
   gl: WebGL2RenderingContext,
   canvas: HTMLCanvasElement | OffscreenCanvas,
   texture: WebGLTexture,
   scaleNearest = false,
   repeat = false,
-): WebGLTexture {
+): Texture {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   gl.bindTexture(GL_TEXTURE_2D, texture);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
@@ -120,7 +129,16 @@ export function canvasToTexture(
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
   gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, scaleNearest ? GL_NEAREST : GL_LINEAR);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-  return texture;
+
+  const size: Vector2 = [canvas.width, canvas.height];
+  return {
+    texture,
+    size,
+    sourceRect: {
+      position: [0, 0],
+      size,
+    },
+  };
 }
 
 export function loadTexture(
