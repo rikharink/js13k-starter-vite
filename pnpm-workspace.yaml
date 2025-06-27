@@ -1,2 +1,10 @@
 onlyBuiltDependencies:
+  - advzip-bin
+  - cwebp-bin
+  - ect-bin
   - esbuild
+  - gifsicle
+  - jpegtran-bin
+  - mozjpeg
+  - optipng-bin
+  - pngquant-bin
