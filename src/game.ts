@@ -72,11 +72,11 @@ new ResourceManagerBuilder()
 
       const pfx = gui.addFolder('postEffects');
       pfx.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
-      pfx.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
-      pfx.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
-      pfx.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
-      pfx.add(resourceManager.getPostEffect('cc'), 'saturation', -1, 1, 0.05);
-      pfx.addColor(resourceManager.getPostEffect('cc'), 'colorFilter');
+      pfx.add(resourceManager.getPostEffect<ColorCorrection>('cc'), 'contrast', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect<ColorCorrection>('cc'), 'brightness', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect<ColorCorrection>('cc'), 'exposure', -1, 1, 0.05);
+      pfx.add(resourceManager.getPostEffect<ColorCorrection>('cc'), 'saturation', -1, 1, 0.05);
+      pfx.addColor(resourceManager.getPostEffect<ColorCorrection>('cc'), 'colorFilter');
 
       const scene = gui.addFolder('scene');
       scene.add(sceneManager.currentScene, 'trauma', 0, 1, 0.01);

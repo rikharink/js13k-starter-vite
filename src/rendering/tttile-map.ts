@@ -1,6 +1,5 @@
 import { Vector2 } from '../math/vector2';
 import { TextureAtlas } from '../textures/atlas';
-import { Texture } from '../textures/texture';
 
 export const enum Solidity {
   None = 0,

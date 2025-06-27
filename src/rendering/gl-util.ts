@@ -29,7 +29,6 @@ import {
 } from './gl-constants';
 import { Shader } from './shaders/shader';
 import { Texture } from '../textures/texture';
-import { Atlas } from '../textures/atlas';
 
 export function initShaderProgram(gl: WebGL2RenderingContext, vertexSource: string, fragSource: string): Shader | null {
   const vertexShader = loadShader(gl, GL_VERTEX_SHADER, vertexSource)!;
@@ -107,13 +106,13 @@ export function createTexture(gl: WebGL2RenderingContext, size: Vector2): WebGLT
   return texture;
 }
 
-export function canvassesToTextureAtlas(
-  gl: WebGL2RenderingContext,
-  canvasses: (HTMLCanvasElement | OffscreenCanvas)[],
-): TextureAtlas {
-  let sizes = canvasses.map((c) => [c.width, c.height] as Vector2);
+// export function canvassesToTextureAtlas(
+//   gl: WebGL2RenderingContext,
+//   canvasses: (HTMLCanvasElement | OffscreenCanvas)[],
+// ): TextureAtlas {
+//   let sizes = canvasses.map((c) => [c.width, c.height] as Vector2);
   
-}
+// }
 
 export function canvasToTexture(
   gl: WebGL2RenderingContext,

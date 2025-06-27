@@ -83,7 +83,7 @@ export function makeNoise4D(clientSeed: number): Noise4D {
   const perm4D = new Uint8Array(256);
   const source = new Uint8Array(256);
   for (let i = 0; i < 256; i++) source[i] = i;
-  let seed = new Uint32Array(1);
+  let seed: Uint32Array = new Uint32Array(1);
   seed[0] = clientSeed;
   seed = shuffleSeed(shuffleSeed(shuffleSeed(seed)));
   for (let i = 255; i >= 0; i--) {

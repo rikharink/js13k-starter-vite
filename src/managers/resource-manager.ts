@@ -23,8 +23,8 @@ export class ResourceManager {
     return this;
   }
 
-  public getPostEffect(key: string): PostEffect {
-    return this.postEffects.get(key)![1];
+  public getPostEffect<T extends PostEffect>(key: string): T {
+    return this.postEffects.get(key)![1] as T;
   }
 
   public getAllPostEffects(): PostEffect[] {
@@ -162,11 +162,11 @@ export class ResourceManagerBuilder {
       incrementProgress();
     }
 
-    for (const [key, tilemap, textures] of this.tttTileMapsToGenerate) {
-      const tttTextures = ttt(textures);
+    // for (const [key, tilemap, textures] of this.tttTileMapsToGenerate) {
+    //   const tttTextures = ttt(textures);
 
-      incrementProgress();
-    }
+    //   incrementProgress();
+    // }
 
     for (const [keys, tttextures, gl, scaleNearest, repeat] of this.tttToLoad) {
       const textures = ttt(tttextures).map((t: HTMLCanvasElement) =>
